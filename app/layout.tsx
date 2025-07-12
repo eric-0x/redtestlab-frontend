@@ -1,6 +1,6 @@
 import "./globals.css";
 import GoogleProvider from "../components/GoogleProvider";
-
+import { CartProvider } from "../components/CartContext";
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -9,11 +9,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <CartProvider>
         <GoogleProvider>
-          {/* <Header /> */}
           <main>{children}</main>
-          {/* <Footer /> */}
         </GoogleProvider>
+        </CartProvider>
       </body>
     </html>
   );

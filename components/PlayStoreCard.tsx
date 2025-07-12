@@ -1,5 +1,5 @@
 import type React from "react"
-
+import Image from 'next/image'
 const AppDownloadSection: React.FC = () => {
   return (
     <section className="bg-white py-24 px-4 overflow-hidden">
@@ -8,10 +8,12 @@ const AppDownloadSection: React.FC = () => {
           {/* Phone Mockup */}
           <div className="flex-1 flex justify-center lg:justify-start">
             <div className="relative">
-              <img
+              <Image
                 src="/phone-mockup.png"
                 alt="Health app interface on mobile phone"
                 className="w-full max-w-md h-auto object-contain transform -rotate-12 lg:-rotate-6"
+                width={0}
+                height={0}
               />
             </div>
           </div>
