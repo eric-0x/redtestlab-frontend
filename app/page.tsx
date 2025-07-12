@@ -25,11 +25,9 @@ export default function Home() {
       <ScanList/>
       <HospitalBanner/>
       <PlayStoreCard/>
-      {/* <Slider/> */}
+      <Slider/>
       <Testimonial/>
       <Footer/>
-
-
     </div>
   );
 }
