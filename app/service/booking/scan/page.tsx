@@ -82,7 +82,12 @@ const ServiceProviderScans: React.FC = () => {
   const [showMobileMenu, setShowMobileMenu] = useState(false)
 
   // Get service provider ID from localStorage
-  const serviceProviderId = localStorage.getItem("serviceId")
+  const [serviceProviderId, setServiceProviderId] = useState<string | null>(null)
+
+   useEffect(() => {
+      // This code will only run on the client side
+      setServiceProviderId(localStorage.getItem("serviceId"));
+    }, []);
 
   useEffect(() => {
     if (serviceProviderId) {
