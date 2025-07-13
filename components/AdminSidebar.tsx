@@ -65,7 +65,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
       subLinks: [
         { title: "Blog", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/blog" },
         { title: "Meta Tags", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/meta" },
-        { title: "Doctor", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/doctor" },
+        //{ title: "Doctor", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/doctor" },
         { title: "Career Listing", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/career" },
         {
           title: "Career Booked",
