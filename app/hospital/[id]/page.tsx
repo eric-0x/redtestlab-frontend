@@ -22,7 +22,7 @@ import {
   ChevronRight,
   Loader2,
 } from "lucide-react"
-import { apiService, type Hospital, type Doctor } from "../api"
+import { apiService, type Hospital, type Doctor } from "../../../components/api"
 import FullyResponsiveBookingModal from "../booking-modal"
 
 export default function MobileOptimizedHospitalDetail() {

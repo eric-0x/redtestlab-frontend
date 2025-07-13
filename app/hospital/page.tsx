@@ -16,7 +16,7 @@ import {
   Calendar,
   Loader2,
 } from "lucide-react"
-import { apiService, type Hospital } from "./api"
+import { apiService, type Hospital } from "../../components/api"
 
 // Interface for the meta tags API response
 interface MetaTagsResponse {

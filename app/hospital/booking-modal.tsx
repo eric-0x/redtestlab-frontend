@@ -19,7 +19,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-import type { Doctor, Hospital } from "./api"
+import type { Doctor, Hospital } from "../../components/api"
 
 interface BookingModalProps {
   doctor: Doctor
