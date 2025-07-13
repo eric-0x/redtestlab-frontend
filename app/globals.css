@@ -1,11 +1,22 @@
+/* @import "tailwindcss/utilities"; */
 @import "tailwindcss";
+/* @import "tailwindcss/base"; */
+/* @import "tailwindcss/components"; */
+
 
 @layer utilities {
   .bg-black {
     @apply bg-transparent;
   }
 }
-
+/* @layer utilities {
+  .backdrop-blur {
+    backdrop-filter: blur(4px);
+  }
+  .backdrop-blur-sm {
+    backdrop-filter: blur(2px);
+  }
+} */
 /* :root {
   --background: #ffffff;
   --foreground: #171717;
