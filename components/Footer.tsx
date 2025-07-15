@@ -128,7 +128,7 @@ const Footer = () => {
           {/* Company Info */}
           <div>
             <div className="mb-6">
-              <h2 className="text-2xl font-bold mb-2">My RedTest Labs</h2>
+              <h2 className="text-2xl font-bold mb-2">RedTest Lab</h2>
               <div className="w-16 h-1 bg-blue-500 rounded-full"></div>
             </div>
             <p className="text-blue-200 mb-6">
@@ -281,21 +281,21 @@ const Footer = () => {
               <li className="flex">
                 <MapPin className="h-5 w-5 mr-3 text-blue-400 flex-shrink-0" />
                 <span className="text-blue-200">
-                  123 Health Avenue, Medical District
+                  Hajipur, Vaishali, Bihar, 
                   <br />
-                  New York, NY 10001
+                  India 844101
                 </span>
               </li>
               <li className="flex items-center">
                 <Phone className="h-5 w-5 mr-3 text-blue-400 flex-shrink-0" />
                 <Link href="tel:+18001234567" className="text-blue-200 hover:text-white">
-                  +1 (800) 123-4567
+                  +91 8804789764
                 </Link>
               </li>
               <li className="flex items-center">
                 <Mail className="h-5 w-5 mr-3 text-blue-400 flex-shrink-0" />
                 <Link href="mailto:info@myhealthplatform.com" className="text-blue-200 hover:text-white">
-                  info@myhealthplatform.com
+                  contact@redtestlab.com
                 </Link>
               </li>
             </ul>
@@ -307,7 +307,7 @@ const Footer = () => {
                 className="text-xl font-bold text-white hover:text-blue-200 transition-colors flex items-center"
               >
                 <Phone className="h-5 w-5 mr-2 text-blue-400" />
-                +1 (800) 911-9999
+                +91 8804789764
               </Link>
               <p className="text-xs text-blue-300 mt-1">Available 24/7 for medical emergencies</p>
             </div>
@@ -320,7 +320,7 @@ const Footer = () => {
         <div className="container mx-auto px-4 md:px-6 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-blue-200 text-sm mb-4 md:mb-0">
-              © {currentYear} My RedTest Labs. All rights reserved.
+              © {currentYear} RedTest Lab. All rights reserved.
             </p>
             <div className="flex flex-wrap gap-4 text-sm">
               <Link href="/privacy-policy" className="text-blue-200 hover:text-white transition-colors">

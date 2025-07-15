@@ -22,9 +22,9 @@ export default function EnhancedBookingCard({
 
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto overflow-hidden">
+    <div className="relative w-full max-w-6xl mx-auto overflow-hidden px-3">
       {/* Main Card */}
-      <div className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 rounded-2xl md:rounded-3xl p-4 md:p-10 shadow-2xl border border-blue-800/30">
+      <div className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 rounded-2xl md:rounded-3xl p-6  md:p-10 shadow-2xl border border-blue-800/30">
         {/* Decorative Elements */}
         <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-blue-400/10 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-indigo-400/10 to-transparent rounded-full blur-3xl" />
@@ -59,8 +59,8 @@ export default function EnhancedBookingCard({
               </p>
             </div>
 
-            {/* Enhanced CTA Button */}
-            <div className="pt-4">
+            {/* Enhanced CTA Button - Hidden on mobile, will be moved to bottom */}
+            <div className="pt-4 hidden md:block">
               <button
                 onClick={()=> navigate.push('/hospital')}
                 className="group relative inline-flex items-center justify-center w-full md:w-auto px-6 md:px-8 py-3 md:py-4 text-sm md:text-base font-bold text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 rounded-xl md:rounded-2xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1 overflow-hidden"
@@ -92,8 +92,8 @@ export default function EnhancedBookingCard({
               ))}
             </div>
 
-            {/* Trust Indicators */}
-            <div className="pt-4 md:pt-6 border-t border-blue-800/30">
+            {/* Trust Indicators - Hidden on mobile */}
+            <div className="pt-4 md:pt-6 border-t border-blue-800/30 hidden md:block">
               <div className="grid grid-cols-3 gap-3 md:gap-4 text-center">
                 <div className="space-y-1 md:space-y-2">
                   <div className="text-xl md:text-2xl font-black text-white">50K+</div>
@@ -110,6 +110,23 @@ export default function EnhancedBookingCard({
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Mobile CTA Button - Positioned at bottom */}
+        <div className="pt-6 md:hidden">
+          <button
+            onClick={()=> navigate.push('/hospital')}
+            className="group relative inline-flex items-center justify-center w-full px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 rounded-xl shadow-2xl hover:shadow-blue-500/25 transition-all duration-300 hover:scale-105 hover:-translate-y-1 overflow-hidden"
+          >
+            {/* Button Glow Effect */}
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-xl" />
+
+            {/* Button Content */}
+            <span className="relative z-10 tracking-wide">Book Consultation Now</span>
+
+            {/* Shine Effect */}
+            <div className="absolute inset-0 -top-1 -bottom-1 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+          </button>
         </div>
       </div>
     </div>
