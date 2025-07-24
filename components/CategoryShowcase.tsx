@@ -2,12 +2,13 @@
 
 import type React from "react"
 import { useRef, useState, useEffect } from "react"
-import { useRouter } from "next/navigation" // Changed from react-router-dom
-import { User, Thermometer, Heart, Activity, Sun, Torus, Shield, Microscope } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { User, Thermometer, Heart, Activity, Sun, Torus, Shield, Microscope, TrendingUp } from "lucide-react"
 
 interface Category {
   id: number
   name: string
+  badge?: string | null
   products: Product[]
 }
 
@@ -30,6 +31,7 @@ interface HealthPackage {
   gradient: string
   iconColor: string
   shadowColor: string
+  badge?: string | null
   description?: string
 }
 
@@ -78,7 +80,7 @@ const shadowColorMap = {
 }
 
 const HealthCheckupPackages: React.FC = () => {
-  const router = useRouter() // Changed from useNavigate()
+  const router = useRouter()
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const componentRef = useRef<HTMLDivElement>(null)
   const [activePackage, setActivePackage] = useState<number | null>(null)
@@ -114,9 +116,11 @@ const HealthCheckupPackages: React.FC = () => {
             gradient: gradientMap[category.name as keyof typeof gradientMap] || defaultGradient,
             iconColor: iconColorMap[category.name as keyof typeof iconColorMap] || defaultIconColor,
             shadowColor: shadowColorMap[category.name as keyof typeof shadowColorMap] || defaultShadowColor,
+            badge: category.badge,
             description: `${category.products.filter((p) => p.productType === "PACKAGE").length} packages available`,
           }
         })
+
         setHealthPackages(packages)
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred")
@@ -125,6 +129,7 @@ const HealthCheckupPackages: React.FC = () => {
         setLoading(false)
       }
     }
+
     fetchCategories()
   }, [])
 
@@ -143,7 +148,7 @@ const HealthCheckupPackages: React.FC = () => {
 
   const handlePackageClick = (packageId: number) => {
     // Navigate to all packages page with the selected category
-    router.push(`/all?category=${packageId}`) // Changed from navigate()
+    router.push(`/all?category=${packageId}`)
   }
 
   if (loading) {
@@ -183,6 +188,7 @@ const HealthCheckupPackages: React.FC = () => {
           </h2>
           <p className="text-gray-500 text-sm md:text-base">Swipe to explore all packages</p>
         </div>
+
         <div className="relative">
           <div
             ref={scrollContainerRef}
@@ -196,10 +202,11 @@ const HealthCheckupPackages: React.FC = () => {
           >
             {/* Hide scrollbar for Chrome, Safari and Opera */}
             <style>{`
-                [ref="scrollContainerRef"]::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
+              [ref="scrollContainerRef"]::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+
             {healthPackages.map((pkg) => (
               <div
                 key={pkg.id}
@@ -214,9 +221,9 @@ const HealthCheckupPackages: React.FC = () => {
                 <div
                   className={`
                     relative overflow-hidden rounded-2xl bg-gradient-to-br ${pkg.gradient}
-                     p-5 w-40 sm:w-44 h-36 sm:h-40
+                    p-8 w-40 sm:w-44 h-36 sm:h-40
                     flex flex-col items-center justify-center
-                     transition-all duration-500 ease-out
+                    transition-all duration-500 ease-out
                   `}
                   style={{
                     boxShadow:
@@ -233,11 +240,25 @@ const HealthCheckupPackages: React.FC = () => {
                           : "translateY(0)",
                   }}
                 >
+                  {/* Badge positioned at top-right corner */}
+                  {pkg.badge && (
+                    <div className="absolute -top-1 -right-1 z-20">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60 shadow-lg backdrop-blur-sm">
+                        <TrendingUp className="w-3 h-3 text-rose-600" strokeWidth={2.5} />
+                        <span className="text-xs font-semibold text-rose-700 tracking-tight whitespace-nowrap">
+                          {pkg.badge}
+                        </span>
+                      </div>
+                      {/* Badge glow effect */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-200/40 to-pink-200/40 blur-sm -z-10 scale-110" />
+                    </div>
+                  )}
+
                   <div
                     className={`
                       relative z-10 rounded-full p-4 mb-3
                       flex items-center justify-center
-                       bg-white/90 backdrop-blur-sm ${pkg.iconColor}
+                      bg-white/90 backdrop-blur-sm ${pkg.iconColor}
                       transition-all duration-500 ease-out
                     `}
                     style={{
@@ -255,10 +276,11 @@ const HealthCheckupPackages: React.FC = () => {
                   >
                     <div className="w-7 h-7">{pkg.icon}</div>
                   </div>
+
                   <p
                     className={`
                       relative z-10 font-semibold text-center text-gray-800 mb-1
-                       transition-all duration-300 ${activePackage === pkg.id ? pkg.iconColor : ""}
+                      transition-all duration-300 ${activePackage === pkg.id ? pkg.iconColor : ""}
                     `}
                     style={{
                       transform: activePackage === pkg.id || isHovering === pkg.id ? "scale(1.05)" : "scale(1)",
@@ -266,10 +288,11 @@ const HealthCheckupPackages: React.FC = () => {
                   >
                     {pkg.name}
                   </p>
+
                   <div
                     className={`
                       text-xs text-center text-gray-600 max-w-[90%]
-                       transition-all duration-500 ease-out
+                      transition-all duration-500 ease-out
                     `}
                     style={{
                       opacity: activePackage === pkg.id || isHovering === pkg.id ? 1 : 0,
@@ -281,6 +304,7 @@ const HealthCheckupPackages: React.FC = () => {
                   >
                     {pkg.description}
                   </div>
+
                   {/* Animated glow effect on active */}
                   <div
                     className="absolute inset-0 rounded-2xl transition-opacity duration-700 ease-in-out pointer-events-none"
@@ -289,6 +313,7 @@ const HealthCheckupPackages: React.FC = () => {
                       opacity: activePackage === pkg.id ? 0.6 : 0,
                     }}
                   />
+
                   {/* Animated bottom indicator */}
                   <div
                     className="absolute bottom-0 left-0 right-0 h-1 transition-all duration-500 ease-out"
@@ -302,6 +327,7 @@ const HealthCheckupPackages: React.FC = () => {
               </div>
             ))}
           </div>
+
           {/* Scroll indicator dots */}
           <div className="mt-4 flex justify-center gap-1.5">
             {healthPackages.map((pkg, index) => (

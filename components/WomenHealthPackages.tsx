@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, ShoppingCartIcon } from "lucide-react"
+import { Search } from "lucide-react"
 import { useCart } from "@/components/CartContext" // Updated import path
 import { AnimatePresence, motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 // Notification component
 interface NotificationProps {
@@ -83,6 +84,7 @@ interface Category {
 }
 
 const WomensHealthPackagesGrid = () => {
+  const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedCategory, setSelectedCategory] = useState("All")
@@ -100,7 +102,7 @@ const WomensHealthPackagesGrid = () => {
   const { addToCart, loading: cartLoading } = useCart()
 
   // Women-related category IDs
-  const womenCategoryIds = [6, 7, 8, 9, 10, 11, 12] // Category IDs for women-related categories
+  const womenCategoryIds = [27,28 , 33, 32, 31, 29, 30] // Category IDs for women-related categories
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -186,6 +188,7 @@ const WomensHealthPackagesGrid = () => {
 
   const handleAddToCart = async (productId: number) => {
     try {
+      router.push("/cart")
       setAddingProductId(productId)
       await addToCart(productId, 1)
       setNotification({
@@ -372,7 +375,7 @@ const WomensHealthPackagesGrid = () => {
                           ></path>
                         </svg>
                       ) : (
-                        <ShoppingCartIcon />
+                        "Book Now"
                       )}
                     </button>
                   </div>

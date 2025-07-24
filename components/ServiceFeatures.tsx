@@ -13,6 +13,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface ServiceFeatureProps {
   icon: LucideIcon
@@ -120,6 +121,7 @@ interface StatType {
 }
 
 const ServiceFeaturesSection = () => {
+  const router = useRouter();
   useEffect(() => {
     // Add keyframe animations to the document
     const style = document.createElement("style")
@@ -376,6 +378,7 @@ const ServiceFeaturesSection = () => {
               <button
                 className="w-full lg:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 transform flex items-center justify-center whitespace-nowrap"
                 style={{ animation: "pulse 2s infinite" }}
+                onClick={()=>router.push('/all')}
               >
                 <Zap className="w-5 h-5 mr-2 flex-shrink-0" /> Book Now
               </button>

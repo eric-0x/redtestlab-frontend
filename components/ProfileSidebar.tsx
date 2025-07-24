@@ -309,7 +309,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
                       <span className="text-xs text-center font-medium">Appointments</span>
                     </Link>
                     <Link
-                      href="/profile/reports"
+                      href="/booking-reports"
                       className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
                     >
                       <FileText className="h-6 w-6 text-green-600 mb-1" />
@@ -568,7 +568,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
             <div className="flex items-center justify-between">
               <div className="text-xs text-gray-500">
                 <p>© 2025 RedTest Labs</p>
-                <p className="mt-1">Version 2.4.0</p>
+                <p className="mt-1">Version 1.0.2</p>
               </div>
               <div className="flex space-x-3">
                 <a href="#" className="text-gray-500 hover:text-gray-700">

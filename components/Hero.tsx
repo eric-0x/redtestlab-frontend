@@ -228,7 +228,7 @@ const HealthTestSearch = () => {
           {metaTags.schema && <script type="application/ld+json">{metaTags.schema}</script>}
         </Head>
       )}
-      <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 p-4 sm:p-8 rounded-lg shadow-xl relative overflow-hidden">
+      <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 px-4 sm:px-8 py-4 sm:py-8 rounded-lg shadow-xl relative overflow-hidden overflow-x-hidden">
         {/* Background decoration circles */}
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-blue-700 opacity-30"></div>
         <div className="absolute -bottom-32 -left-20 w-80 h-80 rounded-full bg-blue-600 opacity-20"></div>
@@ -250,9 +250,9 @@ const HealthTestSearch = () => {
             </div>
           </div>
         )}
-        <div className="max-w-6xl mx-auto relative z-10">
+        <div className="max-w-6xl mx-auto w-full px-0 sm:px-4 relative z-10">
           {/* Header */}
-          <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between">
+          <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between w-full">
             <h1 className="text-2xl sm:text-3xl font-bold text-white mb-4 sm:mb-0">Looking for a blood test?</h1>
             <div className="flex flex-wrap gap-2 sm:gap-4">
               <div className="bg-blue-800 px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg text-white text-xs sm:text-sm flex items-center">
@@ -266,7 +266,7 @@ const HealthTestSearch = () => {
             </div>
           </div>
           {/* Search Bar with animation */}
-          <div className="relative mb-6 sm:mb-8">
+          <div className="relative mb-6 sm:mb-8 w-full px-0 sm:px-2">
             <div
               className={`bg-white rounded-full shadow-lg overflow-hidden flex items-center transition-all duration-300 ${
                 isSearchFocused ? "ring-4 ring-blue-400" : ""
@@ -296,11 +296,10 @@ const HealthTestSearch = () => {
             </div>
           </div>
           {/* Option Cards with hover effects */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8 w-full">
             <Link href="/upload-prescription">
-              {" "}
               {/* Changed to Next.js Link */}
-              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group">
+              <div className="bg-white rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group w-full">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <div className="p-2 sm:p-3 bg-blue-50 rounded-lg group-hover:bg-blue-100 transition-colors duration-300">
@@ -326,10 +325,9 @@ const HealthTestSearch = () => {
               </div>
             </Link>
             <div
-              className="bg-white rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group"
+              className="bg-white rounded-xl p-4 sm:p-6 shadow-lg transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer group w-full"
               onClick={() => router.push("/all")}
             >
-              {" "}
               {/* Changed to router.push() */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center">

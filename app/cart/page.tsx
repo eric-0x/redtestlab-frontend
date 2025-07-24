@@ -6,6 +6,9 @@ import { useCart } from "../../components/CartContext"
 import { motion, AnimatePresence } from "framer-motion"
 import PremiumEmptyCart from "../../components/Empty-Cart"
 import Head from 'next/head'
+import { useRouter } from 'next/navigation'
+import ProfileSidebar from "@/components/ProfileSidebar" // adjust import as needed
+
 interface MetaTagsResponse {
   id: number
   filename: string
@@ -548,6 +551,7 @@ const Stepper = ({ currentStep, steps }: StepperProps) => {
 
 // Login prompt component
 const LoginPrompt = () => {
+  const router = useRouter()
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-50 to-slate-100">
       <motion.div
@@ -562,7 +566,14 @@ const LoginPrompt = () => {
         <p className="text-slate-600 text-center leading-relaxed">
           You need to be logged in to view your cart details and proceed with booking
         </p>
-        <CustomButton onClick={() => (window.location.href = "/login")} className="mt-6" size="lg">
+        <CustomButton
+          onClick={() => {
+            localStorage.setItem("openProfileSidebar", "true");
+            router.push('/')
+          }}
+          className="mt-6"
+          size="lg"
+        >
           Go to Login
         </CustomButton>
       </motion.div>
@@ -2023,6 +2034,17 @@ const Cart = () => {
     }
   }
 
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      if (localStorage.getItem("openProfileSidebar") === "true") {
+        setSidebarOpen(true)
+        localStorage.removeItem("openProfileSidebar")
+      }
+    }
+  }, [])
+
   if (!isAuthenticated) {
     return <LoginPrompt />
   }
@@ -2758,6 +2780,7 @@ const Cart = () => {
           </motion.div>
         )}
       </div>
+      <ProfileSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </div>
   )
 }
