@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react"
 import { CloudinaryUpload } from "@/components/Cloudinary"
 import { Edit, Trash2, Plus, X, Save, FolderOpen, Search, AlertCircle, CheckCircle2, Image as ImageIcon } from "lucide-react"
 
-const API_URL = "http://localhost:5000/api/banner"
+const API_URL = "https://redtestlab.com/api/banner"
 
 interface Banner {
   id: number
@@ -114,9 +114,11 @@ export default function BannerManagement() {
     }, 3000)
   }
 
-  const filteredBanners = banners.filter((banner) =>
-    banner.imageUrl.some((url) => url.toLowerCase().includes(searchTerm.toLowerCase()))
-  )
+  const filteredBanners = banners
+    .filter((banner) => banner.id === 1)
+    .filter((banner) =>
+      banner.imageUrl.some((url) => url.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
 
   return (
     <div className="min-h-screen bg-white">
