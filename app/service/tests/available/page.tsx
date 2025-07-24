@@ -228,9 +228,10 @@ export default function AssignedPrescriptions() {
     formData.append("upload_preset", "E-Rickshaw"); // Replace with your Cloudinary upload preset
 
     try {
-      // Upload to Cloudinary
+      // Upload to Cloudinary as resource_type 'raw' for PDF and other non-image files
+      // See: https://cloudinary.com/documentation/upload_images#uploading_raw_files
       const response = await fetch(
-        "https://api.cloudinary.com/v1_1/dm8jxispy/upload", // Replace with your Cloudinary cloud name
+        "https://api.cloudinary.com/v1_1/dm8jxispy/raw/upload", // Use /raw/upload for resource_type=raw
         {
           method: "POST",
           body: formData,
@@ -334,21 +335,15 @@ export default function AssignedPrescriptions() {
         }
       );
 
-      // if (!response.ok) {
-      //   throw new Error(`Failed to upload result: ${response.status}`)
-      // }
-
-      // const updatedPrescription = await response.json()
-      // console.log("Upload result response:", updatedPrescription)
-
-      // setPrescriptions((prev) => prev.map((p) => (p.id === prescriptionId ? updatedPrescription : p)))
-
       // Show success notification
       setNotification({
         show: true,
         message: `Result uploaded successfully for prescription #${prescriptionId}`,
         type: "success",
       });
+
+      // Refresh prescriptions list
+      await fetchAssignedPrescriptions();
 
       // Hide notification after 3 seconds
       setTimeout(() => {
@@ -395,26 +390,15 @@ export default function AssignedPrescriptions() {
         }
       );
 
-      // if (!response.ok) {
-      //   throw new Error(`Failed to accept prescription: ${response.status}`)
-      // }
-
-      // const updatedPrescription = await response.json()
-      // console.log("Accept response:", updatedPrescription)
-
-      // Update the prescriptions list
-      // setPrescriptions((prev) => {
-      //   const updated = prev.map((p) => (p.id === prescriptionId ? updatedPrescription : p))
-      //   console.log("Updated prescriptions after accept:", updated)
-      //   return updated
-      // })
-
       // Show success notification
       setNotification({
         show: true,
         message: `Prescription #${prescriptionId} has been accepted`,
         type: "success",
       });
+
+      // Refresh prescriptions list
+      await fetchAssignedPrescriptions();
 
       // Hide notification after 3 seconds
       setTimeout(() => {
@@ -480,28 +464,15 @@ export default function AssignedPrescriptions() {
         }
       );
 
-      // if (!response.ok) {
-      //   const errorText = await response.text()
-      //   throw new Error(`Failed to reject prescription: ${response.status} ${errorText}`)
-      // }
-
-      // const updatedPrescription = await response.json()
-      // console.log("Reject response:", updatedPrescription)
-
-      // Instead of removing the prescription, update its status
-      // setPrescriptions((prev) => {
-      //   // Filter out the rejected prescription to match the expected behavior
-      //   const updated = prev.filter((p) => p.id !== prescriptionId)
-      //   console.log("Updated prescriptions after reject:", updated)
-      //   return updated
-      // })
-
       // Show success notification
       setNotification({
         show: true,
         message: `Prescription #${prescriptionId} has been rejected and returned to admin`,
         type: "success",
       });
+
+      // Refresh prescriptions list
+      await fetchAssignedPrescriptions();
 
       // Hide notification after 3 seconds
       setTimeout(() => {
@@ -736,7 +707,7 @@ export default function AssignedPrescriptions() {
                               ) : (
                                 <XCircle className="h-4 w-4 mr-2" />
                               )}
-                              Confirm Rejection
+                              Confirm
                             </button>
                             <button
                               onClick={(e) => {

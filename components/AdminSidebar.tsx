@@ -73,6 +73,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
           path: "/admin/site/careerview",
         },
         { title: "User List", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/user" },
+        { title: "Banner", icon: <Settings size={18} className="text-blue-600" />, path: "/admin/site/banner" },
       ],
     },
     {

@@ -77,11 +77,11 @@ export default function ServiceProviderSidebar({ sidebarOpen, setSidebarOpen, cu
           icon: <FileText size={18} className="text-black" />,
           path: "/service/booking/available",
         },
-        {
-          title: "Requested Scans",
-          icon: <FileText size={18} className="text-black" />,
-          path: "/service/booking/scan",
-        },
+        // {
+        //   title: "Requested Scans",
+        //   icon: <FileText size={18} className="text-black" />,
+        //   path: "/service/booking/scan",
+        // },
       ],
     },
     {

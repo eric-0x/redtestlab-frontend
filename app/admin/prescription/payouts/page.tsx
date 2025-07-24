@@ -319,6 +319,7 @@ export default function AdminPayoutRequests() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-1">Service Provider</h4>
+                            
                             <p className="text-gray-800">{request.serviceProvider.name || "N/A"}</p>
                             <p className="text-gray-600 text-sm">{request.serviceProvider.email}</p>
                           </div>

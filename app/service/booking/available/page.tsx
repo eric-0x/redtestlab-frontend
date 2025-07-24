@@ -118,6 +118,33 @@ export interface ServiceProvider {
   pendingPayoutAmount?: number
 }
 
+export interface Address {
+  id: number
+  userId: number
+  name: string
+  addressLine: string
+  city: string
+  state: string
+  pincode: string
+  landmark?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Member {
+  id: number
+  userId: number
+  name: string
+  email?: string
+  phoneNumber?: string
+  gender?: string
+  dateOfBirth?: string
+  age?: number
+  relation?: string
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Booking {
   id: number
   userId: number
@@ -139,6 +166,10 @@ export interface Booking {
   user?: User
   assignedTo?: ServiceProvider
   items?: BookingItem[]
+  memberId?: number
+  addressId?: number
+  member?: Member
+  address?: Address
 }
 
 export interface OTPStatus {
@@ -464,24 +495,24 @@ const ProviderPanel = () => {
       case "IN_PROGRESS":
         return "🔄"
       case "RETURNED_TO_ADMIN":
-        return "✅"
+        return ""
       default:
-        return "📄"
+        return ""
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 px-2 py-2 sm:px-6 sm:py-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 mb-6">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <div className="flex justify-between items-center">
+          <div className="px-3 py-3 sm:px-6 sm:py-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Assigned Booking</h1>
-                <p className="text-gray-600 mt-1">Manage your assigned bookings ({assignedBookings.length})</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Assigned Booking</h1>
+                <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage your assigned bookings ({assignedBookings.length})</p>
               </div>
-              <div className="flex items-center space-x-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <label className="text-sm font-medium text-gray-700">Service ID:</label>
                 <input
                   type="text"
@@ -491,7 +522,7 @@ const ProviderPanel = () => {
                     localStorage.setItem("serviceId", e.target.value)
                   }}
                   onBlur={() => fetchAssignedBookings(serviceId)}
-                  className="w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full sm:w-64 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                   placeholder="Enter your service ID"
                 />
               </div>
@@ -502,14 +533,14 @@ const ProviderPanel = () => {
         {/* Main Content */}
         <div className="space-y-6">
           {loading && (
-            <div className="flex justify-center items-center py-12">
+            <div className="flex flex-col justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-              <span className="ml-3 text-gray-600">Loading bookings...</span>
+              <span className="ml-0 sm:ml-3 text-gray-600 mt-2 sm:mt-0">Loading bookings...</span>
             </div>
           )}
 
           {!loading && assignedBookings.length === 0 && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
               <div className="text-6xl mb-4">📋</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Assigned Bookings</h3>
               <p className="text-gray-500">You don't have any assigned bookings at the moment.</p>
@@ -520,126 +551,116 @@ const ProviderPanel = () => {
             assignedBookings.map((booking) => (
               <div key={booking.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                 {/* Booking Header */}
-                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-                  <div className="flex justify-between items-start">
-                    <div className="flex items-center space-x-4">
+                <div className="px-3 py-3 sm:px-6 sm:py-4 border-b border-gray-200 bg-gray-50">
+                  <div className="relative flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
+                    {/* Left: Info and badge (badge floats right on mobile) */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full">
                       <div className="flex items-center space-x-2">
                         <span className="text-2xl">{getStatusIcon(booking.status)}</span>
-                        <h2 className="text-xl font-semibold text-gray-900">Booking #{booking.id}</h2>
+                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Booking #{booking.id}</h2>
                       </div>
+                      {/* Status badge: floats right on mobile, inline on desktop */}
                       <span
-                        className={`px-3 py-1 text-sm font-medium rounded-full border ${getStatusColor(booking.status)}`}
+                        className={`px-3 py-1 text-xs sm:text-sm font-medium rounded-full border ${getStatusColor(booking.status)}
+                          absolute right-3 top-3 sm:static sm:ml-0 ml-auto`}
+                        style={{ minWidth: 'fit-content' }}
                       >
                         {booking.status}
                       </span>
                       {booking.otpVerified && (
-                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-green-100 text-green-800 border border-green-200">
-                          ✅ OTP Verified
+                        <span className="px-3 py-1 text-xs sm:text-sm font-medium rounded-full bg-green-100 text-green-800 border border-green-200 sm:static absolute right-3 top-10 ml-auto sm:ml-0" style={{ minWidth: 'fit-content' }}>
+                           OTP Verified
                         </span>
                       )}
                     </div>
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setDetailsModal({ isOpen: true, booking })}
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        📄 View Details
-                      </button>
-
+                    {/* Right: Action buttons, mobile and desktop layouts differ */}
+                    <div className="w-full sm:w-auto flex flex-col gap-2 sm:flex-row sm:space-x-2 sm:gap-0 mt-2 sm:mt-0">
+                      {/* ASSIGNED: Reject and Accept on top row, View Details below on mobile */}
                       {booking.status === "ASSIGNED" && (
                         <>
+                          <div className="flex flex-row w-full sm:w-auto gap-2 sm:flex-row">
+                            <button
+                              onClick={() => handleAcceptBooking(booking.id)}
+                              disabled={loading}
+                              className="flex-1 sm:flex-none order-2 sm:order-1 px-3 py-2 md:py-0 text-xs sm:text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => handleRejectBooking(booking.id)}
+                              disabled={loading}
+                              className="flex-1 sm:flex-none order-1 sm:order-2 px-3 py-2 md:py-0 text-xs sm:text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
+                            >
+                              Reject
+                            </button>
+                          </div>
                           <button
-                            onClick={() => handleAcceptBooking(booking.id)}
-                            disabled={loading}
-                            className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                            onClick={() => setDetailsModal({ isOpen: true, booking })}
+                            className="w-full md:w-[150px] sm:w-auto mt-2 sm:mt-0 px-3 md:px-8 py-2 md:py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
-                            ✅ Accept
-                          </button>
-                          <button
-                            onClick={() => handleRejectBooking(booking.id)}
-                            disabled={loading}
-                            className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 disabled:opacity-50"
-                          >
-                            ❌ Reject
+                            View Details
                           </button>
                         </>
                       )}
-
+                      {/* IN_PROGRESS: OTP and Upload Result, View Details below on mobile */}
                       {booking.status === "IN_PROGRESS" && (
                         <>
-                          <button
-                            onClick={() => handleShowOTPModal(booking)}
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          >
-                             Verify OTP
-                          </button>
-                          {booking.otpVerified && (
+                          <div className="flex flex-row w-full gap-2 sm:w-auto sm:flex-row">
                             <button
-                              onClick={() => setUploadModal({ isOpen: true, booking })}
-                              className="px-4 py-2 text-sm font-medium text-white bg-black border border-transparent rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-black"
+                              onClick={() => handleShowOTPModal(booking)}
+                              className="flex-1 px-3 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
-                               Upload Result
+                              Verify OTP
                             </button>
-                          )}
+                            {booking.otpVerified && (
+                              <button
+                                onClick={() => setUploadModal({ isOpen: true, booking })}
+                                className="flex-1 px-3 py-2 text-xs sm:text-sm font-medium text-white bg-black border border-transparent rounded-md hover:bg-black focus:outline-none focus:ring-2 focus:ring-black"
+                              >
+                                Upload Result
+                              </button>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => setDetailsModal({ isOpen: true, booking })}
+                            className="w-full sm:w-auto mt-2 sm:mt-0 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                             View Details
+                          </button>
                         </>
                       )}
+                      {/* Default: Only View Details on its own row */}
+                      {booking.status !== "ASSIGNED" && booking.status !== "IN_PROGRESS" && (
+                        <button
+                          onClick={() => setDetailsModal({ isOpen: true, booking })}
+                          className="w-full sm:w-auto px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                           View Details
+                        </button>
+                      )}
                     </div>
+                  </div>
+                  {/* Member & Address summary */}
+                  <div className="mt-2 text-xs sm:text-sm text-gray-700 flex flex-col gap-1">
+                    {booking.member && (
+                      <div>
+                        <span className="font-medium">👤 Member:</span> {booking.member.name}
+                        {booking.member.phoneNumber && (
+                          <span> ({booking.member.phoneNumber})</span>
+                        )}
+                      </div>
+                    )}
+                    {booking.address && (
+                      <div>
+                        <span className="font-medium">📍 Address:</span> {booking.address.addressLine}, {booking.address.city}, {booking.address.state}, {booking.address.pincode}
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* Booking Content */}
-                <div className="p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {/* Customer Information */}
-                    <div className="bg-blue-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3 flex items-center">👤 Customer Information</h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Name:</span>
-                          <span className="font-medium">{booking.user?.name || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Email:</span>
-                          <span className="font-medium">{booking.user?.email || "N/A"}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Customer ID:</span>
-                          <span className="font-medium">{booking.userId}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Role:</span>
-                          <span className="font-medium">{booking.user?.role || "N/A"}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Booking Information */}
-                    <div className="bg-green-50 rounded-lg p-4">
-                      <h3 className="font-semibold text-gray-900 mb-3 flex items-center">💰 Booking Information</h3>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Amount:</span>
-                          <span className="font-medium text-green-600">{formatCurrency(booking.amount)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Type:</span>
-                          <span className="font-medium">{booking.bookingType}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Coins:</span>
-                          <span className="font-medium text-yellow-600">{booking.assignedCoins || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Assigned:</span>
-                          <span className="font-medium">{formatDate(booking.updatedAt)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Payment ID:</span>
-                          <span className="font-mono text-xs">{booking.razorpayPaymentId}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="p-3 sm:p-6">
+             
 
                   {/* Result Information */}
                   {booking.resultFileUrl && (
@@ -652,7 +673,7 @@ const ProviderPanel = () => {
                           rel="noopener noreferrer"
                           className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium underline"
                         >
-                          📄 View Report
+                           View Report
                         </a>
                         {booking.remarks && (
                           <p className="text-sm text-gray-700">
@@ -669,9 +690,9 @@ const ProviderPanel = () => {
                       <h3 className="font-semibold text-gray-900 mb-3 flex items-center">
                         📦 Items ({booking.items.length})
                       </h3>
-                      <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                      <div className="bg-gray-50 rounded-lg p-2 sm:p-4 space-y-4">
                         {booking.items.slice(0, 3).map((item) => (
-                          <div key={item.id} className="bg-white rounded-lg p-4 border border-gray-200">
+                          <div key={item.id} className="bg-white rounded-lg p-2 sm:p-4 border border-gray-200">
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex-1">
                                 <div className="flex items-center space-x-2 mb-1">
@@ -700,7 +721,7 @@ const ProviderPanel = () => {
 
                             {/* Product Details */}
                             {item.product && (
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 text-sm">
                                 <div className="space-y-1">
                                   {item.product.desc && (
                                     <div>
@@ -825,7 +846,7 @@ const ProviderPanel = () => {
                           <div className="text-center">
                             <button
                               onClick={() => setDetailsModal({ isOpen: true, booking })}
-                              className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                              className="text-xs sm:text-sm text-blue-600 hover:text-blue-800 font-medium"
                             >
                               +{booking.items.length - 3} more items (Click to view all details)
                             </button>
@@ -843,7 +864,7 @@ const ProviderPanel = () => {
       {/* OTP Verification Modal */}
       {otpModal.isOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-3 sm:p-6 w-full max-w-xs sm:max-w-md mx-2">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">🔐 OTP Verification</h3>
               <button
@@ -873,7 +894,7 @@ const ProviderPanel = () => {
                         otpModal.otpStatus.isVerified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {otpModal.otpStatus.isVerified ? "✅ Verified" : "⏳ Pending"}
+                      {otpModal.otpStatus.isVerified ? " Verified" : "⏳ Pending"}
                     </span>
                   </div>
 
@@ -916,7 +937,7 @@ const ProviderPanel = () => {
                   {otpError && (
                     <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                       <div className="flex items-center">
-                        <span className="text-red-600 mr-2">❌</span>
+                        <span className="text-red-600 mr-2"></span>
                         <span className="text-red-800 text-sm">{otpError}</span>
                       </div>
                     </div>
@@ -925,7 +946,7 @@ const ProviderPanel = () => {
                   {otpSuccess && (
                     <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                       <div className="flex items-center">
-                        <span className="text-green-600 mr-2">✅</span>
+                        <span className="text-green-600 mr-2"></span>
                         <span className="text-green-800 text-sm">{otpSuccess}</span>
                       </div>
                     </div>
@@ -953,7 +974,7 @@ const ProviderPanel = () => {
               {otpModal.otpStatus?.isVerified && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center">
-                    <span className="text-green-600 mr-2">✅</span>
+                    <span className="text-green-600 mr-2"></span>
                     <span className="text-green-800 text-sm">
                       OTP has been verified successfully! You can now upload results for this booking.
                     </span>
@@ -968,7 +989,7 @@ const ProviderPanel = () => {
       {/* Upload Result Modal */}
       {uploadModal.isOpen && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg p-3 sm:p-6 w-full max-w-xs sm:max-w-md mx-2">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-semibold text-gray-900">📤 Upload Result</h3>
               <button
@@ -1035,8 +1056,8 @@ const ProviderPanel = () => {
       {/* Details Modal */}
       {detailsModal.isOpen && detailsModal.booking && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-4">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+          <div className="bg-white rounded-lg w-full max-w-2xl md:max-w-6xl max-h-[90vh] overflow-y-auto mx-2">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-3 py-3 sm:px-6 sm:py-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-semibold text-gray-900">📋 Booking Details #{detailsModal.booking.id}</h3>
                 <button
@@ -1048,96 +1069,47 @@ const ProviderPanel = () => {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-3 sm:p-6">
+              {/* Member Details */}
+              {detailsModal.booking.member && (
+                <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-semibold text-blue-800 mb-2">👤 Member Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-medium">Name:</span> {detailsModal.booking.member.name}</div>
+                    {detailsModal.booking.member.phoneNumber && (
+                      <div><span className="font-medium">Phone:</span> {detailsModal.booking.member.phoneNumber}</div>
+                    )}
+                    {detailsModal.booking.member.gender && (
+                      <div><span className="font-medium">Gender:</span> {detailsModal.booking.member.gender}</div>
+                    )}
+                    {detailsModal.booking.member.dateOfBirth && (
+                      <div><span className="font-medium">DOB:</span> {formatDate(detailsModal.booking.member.dateOfBirth)}</div>
+                    )}
+                    {detailsModal.booking.member.relation && (
+                      <div><span className="font-medium">Relation:</span> {detailsModal.booking.member.relation}</div>
+                    )}
+                    {detailsModal.booking.member.email && (
+                      <div><span className="font-medium">Email:</span> {detailsModal.booking.member.email}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {/* Address Details */}
+              {detailsModal.booking.address && (
+                <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-semibold text-green-800 mb-2">📍 Address Details</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div><span className="font-medium">Address:</span> {detailsModal.booking.address.addressLine}</div>
+                    <div><span className="font-medium">City:</span> {detailsModal.booking.address.city}</div>
+                    <div><span className="font-medium">State:</span> {detailsModal.booking.address.state}</div>
+                    <div><span className="font-medium">Pincode:</span> {detailsModal.booking.address.pincode}</div>
+                    {detailsModal.booking.address.landmark && (
+                      <div><span className="font-medium">Landmark:</span> {detailsModal.booking.address.landmark}</div>
+                    )}
+                  </div>
+                </div>
+              )}
               {/* Overview Section */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">👤 Customer Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Name:</span>
-                      <span className="font-medium">{detailsModal.booking.user?.name || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Email:</span>
-                      <span className="font-medium">{detailsModal.booking.user?.email || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Customer ID:</span>
-                      <span className="font-medium">{detailsModal.booking.userId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Role:</span>
-                      <span className="font-medium">{detailsModal.booking.user?.role || "N/A"}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Google ID:</span>
-                      <span className="font-medium">{detailsModal.booking.user?.googleId || "N/A"}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-green-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">💰 Booking Information</h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(detailsModal.booking.status)}`}>
-                        {detailsModal.booking.status}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Amount:</span>
-                      <span className="font-medium text-green-600">{formatCurrency(detailsModal.booking.amount)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Type:</span>
-                      <span className="font-medium">{detailsModal.booking.bookingType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Coins Assigned:</span>
-                      <span className="font-medium text-yellow-600">{detailsModal.booking.assignedCoins || 0}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Created:</span>
-                      <span className="font-medium">{formatDate(detailsModal.booking.createdAt)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Updated:</span>
-                      <span className="font-medium">{formatDate(detailsModal.booking.updatedAt)}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Payment Information */}
-              <div className="bg-purple-50 rounded-lg p-4 mb-6">
-                <h4 className="font-semibold text-gray-900 mb-3">💳 Payment Information</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Payment ID:</span>
-                    <span className="font-mono text-xs">{detailsModal.booking.razorpayPaymentId}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Order ID:</span>
-                    <span className="font-mono text-xs">{detailsModal.booking.razorpayOrderId}</span>
-                  </div>
-                  {detailsModal.booking.otpVerified !== undefined && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">OTP Status:</span>
-                      <span
-                        className={`px-2 py-1 text-xs rounded-full ${
-                          detailsModal.booking.otpVerified
-                            ? "bg-green-100 text-green-800"
-                            : "bg-yellow-100 text-yellow-800"
-                        }`}
-                      >
-                        {detailsModal.booking.otpVerified ? "✅ Verified" : "⏳ Pending"}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
 
               {/* Test Results */}
               {detailsModal.booking.resultFileUrl && (
@@ -1150,7 +1122,7 @@ const ProviderPanel = () => {
                       rel="noopener noreferrer"
                       className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium underline"
                     >
-                      📄 Download Report
+                       Download Report
                     </a>
                     {detailsModal.booking.remarks && (
                       <p className="text-sm text-gray-700">
@@ -1163,160 +1135,150 @@ const ProviderPanel = () => {
 
               {/* Detailed Items */}
               {detailsModal.booking.items && detailsModal.booking.items.length > 0 && (
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-4">
+                <div className="mb-6 bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4">
+                  <h4 className="font-semibold text-yellow-800 mb-4">
                     📦 Complete Items Details ({detailsModal.booking.items.length})
                   </h4>
                   <div className="space-y-6">
                     {detailsModal.booking.items.map((item) => (
-                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                        <div className="flex justify-between items-start mb-4">
+                      <div key={item.id} className="bg-white border border-gray-200 rounded-lg p-3 sm:p-6 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-4 mb-4">
                           <div>
-                            <h5 className="text-lg font-medium text-gray-900">
+                            <h5 className="text-base sm:text-lg font-medium text-gray-900">
                               {item.product?.name || item.customPackage?.name || "Unknown Item"}
                             </h5>
                             <div className="flex items-center space-x-2 mt-1">
                               <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                                 {item.product?.productType || "PACKAGE"}
                               </span>
-                              <span className="text-sm text-gray-600">Quantity: {item.quantity}</span>
+                              <span className="text-xs sm:text-sm text-gray-600">Quantity: {item.quantity}</span>
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="text-lg font-medium text-gray-900">{formatCurrency(item.price)}</p>
+                            <p className="text-base sm:text-lg font-medium text-gray-900">{formatCurrency(item.price)}</p>
                             {item.product?.actualPrice && (
-                              <p className="text-sm text-gray-500">
+                              <p className="text-xs sm:text-sm text-gray-500">
                                 Original: {formatCurrency(item.product.actualPrice)}
                               </p>
                             )}
                           </div>
                         </div>
 
-                        {/* Product Details */}
+                        {/* Product Details - organized grid, no Collection & Delivery title */}
                         {item.product && (
-                          <div className="space-y-4">
-                            {item.product.desc && (
-                              <div>
-                                <h6 className="font-medium text-gray-700 mb-1">Description:</h6>
-                                <p className="text-gray-600 text-sm">{item.product.desc}</p>
-                              </div>
-                            )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-3">
-                                <h6 className="font-medium text-gray-700">Test Information</h6>
-                                <div className="space-y-2 text-sm">
-                                  {item.product.reportTime && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Report Time:</span>
-                                      <span className="font-medium">{item.product.reportTime} hours</span>
-                                    </div>
-                                  )}
-                                  {item.product.tags && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Tags:</span>
-                                      <span className="font-medium">{item.product.tags}</span>
-                                    </div>
-                                  )}
-                                  {item.product.categoryId && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Category ID:</span>
-                                      <span className="font-medium">{item.product.categoryId}</span>
-                                    </div>
-                                  )}
-                                  {item.product.category?.name && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Category:</span>
-                                      <span className="font-medium">{item.product.category.name}</span>
-                                    </div>
-                                  )}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-6 text-sm">
+                            <div className="space-y-2">
+                              {item.product.desc && (
+                                <div>
+                                  <span className="font-medium text-gray-700">Description:</span>
+                                  <p className="text-gray-600 mt-1">{item.product.desc}</p>
                                 </div>
-                              </div>
-
-                              <div className="space-y-3">
-                                <h6 className="font-medium text-gray-700">Collection & Delivery</h6>
-                                <div className="space-y-2 text-sm">
-                                  {item.product.sampleType && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Sample Type:</span>
-                                      <span className="font-medium">{item.product.sampleType}</span>
-                                    </div>
-                                  )}
-                                  {item.product.preparation && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Preparation:</span>
-                                      <span className="font-medium">{item.product.preparation}</span>
-                                    </div>
-                                  )}
-                                  {item.product.homeCollection !== undefined && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Home Collection:</span>
-                                      <span
-                                        className={`px-2 py-1 text-xs rounded-full ${
-                                          item.product.homeCollection
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-red-100 text-red-800"
-                                        }`}
-                                      >
-                                        {item.product.homeCollection ? "Available" : "Not Available"}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {item.product.labCollection !== undefined && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Lab Collection:</span>
-                                      <span
-                                        className={`px-2 py-1 text-xs rounded-full ${
-                                          item.product.labCollection
-                                            ? "bg-green-100 text-green-800"
-                                            : "bg-red-100 text-red-800"
-                                        }`}
-                                      >
-                                        {item.product.labCollection ? "Available" : "Not Available"}
-                                      </span>
-                                    </div>
-                                  )}
-                                  {item.product.reportDelivery && (
-                                    <div className="flex justify-between">
-                                      <span className="text-gray-600">Report Delivery:</span>
-                                      <span className="font-medium">{item.product.reportDelivery}</span>
-                                    </div>
-                                  )}
+                              )}
+                              {item.product.reportTime && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Report Time:</span>
+                                  <span className="font-medium">{item.product.reportTime} hours</span>
                                 </div>
+                              )}
+                              {item.product.tags && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Tags:</span>
+                                  <span className="font-medium">{item.product.tags}</span>
+                                </div>
+                              )}
+                              {item.product.categoryId && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Category ID:</span>
+                                  <span className="font-medium">{item.product.categoryId}</span>
+                                </div>
+                              )}
+                              {item.product.category?.name && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Category:</span>
+                                  <span className="font-medium">{item.product.category.name}</span>
+                                </div>
+                              )}
+                            </div>
+                            <div className="space-y-2">
+                              {item.product.sampleType && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Sample Type:</span>
+                                  <span className="font-medium">{item.product.sampleType}</span>
+                                </div>
+                              )}
+                              {item.product.preparation && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Preparation:</span>
+                                  <span className="font-medium">{item.product.preparation}</span>
+                                </div>
+                              )}
+                              {item.product.homeCollection !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Home Collection:</span>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      item.product.homeCollection
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-red-100 text-red-800"
+                                    }`}
+                                  >
+                                    {item.product.homeCollection ? "Available" : "Not Available"}
+                                  </span>
+                                </div>
+                              )}
+                              {item.product.labCollection !== undefined && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Lab Collection:</span>
+                                  <span
+                                    className={`px-2 py-1 text-xs rounded-full ${
+                                      item.product.labCollection
+                                        ? "bg-green-100 text-green-800"
+                                        : "bg-red-100 text-red-800"
+                                    }`}
+                                  >
+                                    {item.product.labCollection ? "Available" : "Not Available"}
+                                  </span>
+                                </div>
+                              )}
+                              {item.product.reportDelivery && (
+                                <div className="flex justify-between">
+                                  <span className="text-gray-600">Report Delivery:</span>
+                                  <span className="font-medium">{item.product.reportDelivery}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Parameters */}
+                        {item.product?.parameters && (
+                          <div className="mt-4">
+                            <h6 className="font-medium text-gray-700 mb-2">Test Parameters:</h6>
+                            <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-2 text-xs">
+                                {Object.entries(parseParameters(item.product.parameters)).map(([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="flex justify-between py-1 border-b border-gray-200 last:border-b-0"
+                                  >
+                                    <span className="font-medium text-gray-700">{key}:</span>
+                                    <span className="text-gray-600">{String(value)}</span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
-
-                            {/* Parameters */}
-                            {item.product.parameters && (
-                              <div>
-                                <h6 className="font-medium text-gray-700 mb-2">Test Parameters:</h6>
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
-                                    {Object.entries(parseParameters(item.product.parameters)).map(([key, value]) => (
-                                      <div
-                                        key={key}
-                                        className="flex justify-between py-1 border-b border-gray-200 last:border-b-0"
-                                      >
-                                        <span className="font-medium text-gray-700">{key}:</span>
-                                        <span className="text-gray-600">{String(value)}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
                           </div>
                         )}
 
                         {/* Custom Package Details */}
                         {item.customPackage && (
-                          <div className="bg-purple-50 rounded-lg p-4">
-                            <h6 className="font-medium text-purple-900 mb-3">📦 Custom Package Details</h6>
+                          <div className="bg-purple-50 rounded-lg p-3 sm:p-4 mt-3 sm:mt-4">
+                            <h6 className="font-medium text-purple-900 mb-2 sm:mb-3">📦 Custom Package Details</h6>
                             {item.customPackage.description && (
                               <p className="text-sm text-purple-700 mb-3">{item.customPackage.description}</p>
                             )}
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-4 mb-2 sm:mb-4 text-sm">
                               {item.customPackage.totalPrice && (
                                 <div className="flex justify-between">
                                   <span className="text-purple-600">Total Price:</span>
@@ -1335,22 +1297,22 @@ const ProviderPanel = () => {
 
                             {item.customPackage.items && item.customPackage.items.length > 0 && (
                               <div>
-                                <h6 className="font-medium text-purple-800 mb-2">
+                                <h6 className="font-medium text-purple-800 mb-1 sm:mb-2">
                                   Package Items ({item.customPackage.items.length}):
                                 </h6>
-                                <div className="space-y-3">
+                                <div className="space-y-2 sm:space-y-3">
                                   {item.customPackage.items.map((packageItem) => (
-                                    <div key={packageItem.id} className="bg-white rounded p-3 border border-purple-200">
-                                      <div className="flex justify-between items-start mb-2">
+                                    <div key={packageItem.id} className="bg-white rounded p-2 sm:p-3 border border-purple-200">
+                                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-1 sm:mb-2">
                                         <div>
-                                          <h6 className="font-medium text-gray-900">
+                                          <h6 className="font-medium text-gray-900 text-xs sm:text-sm">
                                             {packageItem.product?.name || packageItem.test?.name || "Unknown Item"}
                                           </h6>
                                           <span className="text-xs text-purple-600">
                                             {packageItem.product ? "Product" : "Test"}
                                           </span>
                                         </div>
-                                        <span className="font-medium text-gray-900">
+                                        <span className="font-medium text-gray-900 text-xs sm:text-sm">
                                           {packageItem.product?.discountedPrice
                                             ? formatCurrency(packageItem.product.discountedPrice)
                                             : packageItem.test?.discountedPrice || packageItem.test?.price
@@ -1365,7 +1327,7 @@ const ProviderPanel = () => {
 
                                       {/* Product/Test specific details */}
                                       {packageItem.product && (
-                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs text-gray-600">
                                           {packageItem.product.reportTime && (
                                             <span>Report: {packageItem.product.reportTime}h</span>
                                           )}
@@ -1376,7 +1338,7 @@ const ProviderPanel = () => {
                                       )}
 
                                       {packageItem.test && (
-                                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div className="grid grid-cols-2 gap-1 sm:gap-2 text-xs text-gray-600">
                                           {packageItem.test.reportIn && (
                                             <span>Report: {packageItem.test.reportIn}</span>
                                           )}
@@ -1394,7 +1356,7 @@ const ProviderPanel = () => {
 
                                       {/* Test description */}
                                       {packageItem.test?.desc && (
-                                        <p className="text-xs text-gray-600 mt-2">{packageItem.test.desc}</p>
+                                        <p className="text-xs text-gray-600 mt-1 sm:mt-2">{packageItem.test.desc}</p>
                                       )}
                                     </div>
                                   ))}
