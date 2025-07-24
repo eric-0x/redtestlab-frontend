@@ -1,3 +1,4 @@
+"use client"
 import { useState, useEffect } from "react";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import CustomPackage from "@/components/CustomPackage";
