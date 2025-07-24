@@ -18,7 +18,7 @@ import {
 // TypeScript interfaces
 interface ServiceProvider {
   id: string
-  name: string
+  ownerName: string
   email: string
 }
 
@@ -299,7 +299,7 @@ export default function AdminPayoutRequests() {
                         </div>
                         <div>
                           <h3 className="font-medium text-gray-800">
-                            {request.serviceProvider.name || request.serviceProvider.email}
+                            {request.serviceProvider.ownerName || request.serviceProvider.email}
                           </h3>
                           <p className="text-sm text-gray-500">{formatDate(request.createdAt)}</p>
                         </div>
@@ -319,8 +319,8 @@ export default function AdminPayoutRequests() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                           <div>
                             <h4 className="text-sm font-medium text-gray-700 mb-1">Service Provider</h4>
-                            
-                            <p className="text-gray-800">{request.serviceProvider.name || "N/A"}</p>
+                            <p className="text-gray-800">{request.serviceProvider.id || "N/A"}</p>
+                            <p className="text-gray-800">{request.serviceProvider.ownerName || "N/A"}</p>
                             <p className="text-gray-600 text-sm">{request.serviceProvider.email}</p>
                           </div>
                           <div>

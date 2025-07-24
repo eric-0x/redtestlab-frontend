@@ -605,10 +605,10 @@ const ProviderPanel = () => {
                       {/* IN_PROGRESS: OTP and Upload Result, View Details below on mobile */}
                       {booking.status === "IN_PROGRESS" && (
                         <>
-                          <div className="flex flex-row w-full gap-2 sm:w-auto sm:flex-row">
+                          <div className="flex flex-row w-full md:w-[140px] sm:w-auto sm:flex-row pt-4 md:pt-0">
                             <button
                               onClick={() => handleShowOTPModal(booking)}
-                              className="flex-1 px-3 py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="flex-1 px-3 py-2 md:py-0 padding text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                               Verify OTP
                             </button>
@@ -623,7 +623,7 @@ const ProviderPanel = () => {
                           </div>
                           <button
                             onClick={() => setDetailsModal({ isOpen: true, booking })}
-                            className="w-full sm:w-auto mt-2 sm:mt-0 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full md:w-[150px] sm:w-auto mt-2 sm:mt-0 px-3 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                           >
                              View Details
                           </button>
