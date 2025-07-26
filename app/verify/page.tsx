@@ -1,14 +1,25 @@
-'use client'
+'use client';
+
 import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
 import axios from 'axios';
 
 const VerifyReportPage = () => {
-  const router = useRouter();
-  const { id } = router.query;
   const [loading, setLoading] = useState(true);
   const [result, setResult] = useState<null | { valid: boolean; name?: string; issuedOn?: string }>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Get the report ID from the URL search params
+  const getIdFromSearchParams = () => {
+    if (typeof window === 'undefined') return null;
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  };
+
+  const [id, setId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setId(getIdFromSearchParams());
+  }, []);
 
   useEffect(() => {
     if (!id) return;
