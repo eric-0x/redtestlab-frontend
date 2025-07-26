@@ -117,7 +117,7 @@ const HealthCheckupPackages: React.FC = () => {
             iconColor: iconColorMap[category.name as keyof typeof iconColorMap] || defaultIconColor,
             shadowColor: shadowColorMap[category.name as keyof typeof shadowColorMap] || defaultShadowColor,
             badge: category.badge,
-            description: `${category.products.filter((p) => p.productType === "PACKAGE").length} packages available`,
+            // description: `${category.products.filter((p) => p.productType === "PACKAGE").length} packages available`,
           }
         })
 
@@ -181,7 +181,7 @@ const HealthCheckupPackages: React.FC = () => {
 
   return (
     <div className="w-full bg-white py-12 px-4 sm:px-6 lg:px-8 rounded-2xl" ref={componentRef}>
-      <div className="max-w-7xl mx-auto">
+      <div className=" max-w-[1360px] mx-auto">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-10">
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-700 to-indigo-800 bg-clip-text text-transparent mb-2 md:mb-0">
             Doctors Curated Health Checkup Packages
@@ -221,7 +221,7 @@ const HealthCheckupPackages: React.FC = () => {
                 <div
                   className={`
                     relative overflow-hidden rounded-2xl bg-gradient-to-br ${pkg.gradient}
-                    p-8 w-40 sm:w-44 h-36 sm:h-40
+                    pt-7 w-40 sm:w-44 h-36 sm:h-40
                     flex flex-col items-center justify-center
                     transition-all duration-500 ease-out
                   `}
@@ -242,15 +242,15 @@ const HealthCheckupPackages: React.FC = () => {
                 >
                   {/* Badge positioned at top-right corner */}
                   {pkg.badge && (
-                    <div className="absolute -top-1 -right-1 z-20">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60 shadow-lg backdrop-blur-sm">
+                    <div className="absolute top-1 right-1 z-20">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-gradient-to-r from-rose-50 to-pink-50 border border-rose-200/60 shadow-lg backdrop-blur-sm">
                         <TrendingUp className="w-3 h-3 text-rose-600" strokeWidth={2.5} />
-                        <span className="text-xs font-semibold text-rose-700 tracking-tight whitespace-nowrap">
+                        <span className="text-[11px] font-semibold text-rose-700 tracking-tight whitespace-nowrap">
                           {pkg.badge}
                         </span>
                       </div>
                       {/* Badge glow effect */}
-                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-200/40 to-pink-200/40 blur-sm -z-10 scale-110" />
+                      {/* <div className="absolute inset-0 rounded-full bg-gradient-to-r from-rose-200/40 to-pink-200/40 blur-sm -z-10 scale-110" /> */}
                     </div>
                   )}
 

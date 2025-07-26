@@ -247,27 +247,14 @@ const ScanCategories: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className=" bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <div className="px-4 md:px-[74px] mx-auto py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-0">
           <div className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium mb-6">
             <Shield className="w-4 h-4 mr-2" /> Trusted by 50,000+ patients
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold mb-6">
-            <span className="bg-gradient-to-r from-blue-700 via-purple-700 to-indigo-800 bg-clip-text text-transparent">
-              Your Health,
-            </span>
-            <br />
-            <span className="bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-              Our Priority
-            </span>
-          </h1>
-          <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed mb-8">
-            Book tests with top-rated labs near you. Enjoy{" "}
-            <span className="text-blue-700 font-semibold">online doctor booking</span>, transparent pricing, and fast
-            report delivery.
-          </p>
+
         </div>
 
         {/* Main Section */}
@@ -373,37 +360,6 @@ const ScanCategories: React.FC = () => {
                 </div>
               )
             })}
-          </div>
-        </div>
-
-        {/* Features Section */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20">
-          <div className="text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Shield className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-900">Verified Labs</h3>
-            <p className="text-gray-600 leading-relaxed">
-              All our partner labs are verified and certified for quality assurance and accurate results
-            </p>
-          </div>
-          <div className="text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20">
-            <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Clock className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-900">Quick Reports</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Get your test reports within 24-48 hours via email and SMS with detailed analysis
-            </p>
-          </div>
-          <div className="text-center p-8 bg-white/60 backdrop-blur-sm rounded-3xl shadow-lg border border-white/20">
-            <div className="w-20 h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <MapPin className="w-10 h-10 text-white" />
-            </div>
-            <h3 className="text-2xl font-bold mb-4 text-gray-900">Convenient Locations</h3>
-            <p className="text-gray-600 leading-relaxed">
-              Find labs near you with easy booking, flexible timing, and home sample collection
-            </p>
           </div>
         </div>
       </div>

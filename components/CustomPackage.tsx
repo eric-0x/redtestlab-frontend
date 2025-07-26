@@ -7,7 +7,7 @@ const PackageCustomiseCard = () => {
   const navigate = useRouter()
 
   return (
-    <div className="max-w-6xl mx-auto relative overflow-hidden px-4 sm:px-6 lg:px-0">
+    <div className="max-w-6xl mx-auto relative overflow-hidden px-4 sm:px-6 lg:px-0 mt-10 mb-10">
       {/* Main Card Container */}
       <div className="relative bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500">
         {/* Content Container */}

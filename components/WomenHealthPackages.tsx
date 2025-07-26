@@ -222,7 +222,7 @@ const WomensHealthPackagesGrid = () => {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50">
+    <div className="w-full max-w-full mx-auto px-3 md:px-[74px] py-8 bg-gray-50">
       <Notification
         title={notification.title}
         message={notification.message}
@@ -234,7 +234,7 @@ const WomensHealthPackagesGrid = () => {
       <div className="bg-blue-50 rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex justify-between items-center mb-2">
           <div>
-            <h1 className="text-2xl font-bold text-blue-800">Women's Health & Wellness</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-blue-800">Women's Health & Wellness</h1>
             <p className="text-gray-600">
               Get specialized health packages for women. Book online and enjoy hassle-free home sample collection with
               RedTest Lab.

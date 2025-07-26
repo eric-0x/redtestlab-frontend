@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
-import { Edit, Trash2, Plus, X, Save, FolderOpen, Search, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Edit, Trash2, Plus, X, Save, FolderOpen, Search, AlertCircle, CheckCircle2, Badge } from "lucide-react"
 
 const API_URL = "https://redtestlab.com/api"
 
@@ -11,10 +10,12 @@ const API_URL = "https://redtestlab.com/api"
 interface Category {
   id: number
   name: string
+  badge: string | null
 }
 
 interface FormData {
   name: string
+  badge: string
 }
 
 interface Notification {
@@ -35,6 +36,7 @@ export default function CategoryManagement() {
   // Form state
   const [formData, setFormData] = useState<FormData>({
     name: "",
+    badge: "",
   })
 
   useEffect(() => {
@@ -45,9 +47,7 @@ export default function CategoryManagement() {
     try {
       setIsLoading(true)
       const response = await fetch(`${API_URL}/category`)
-
       if (!response.ok) throw new Error("Failed to fetch categories")
-
       const data = await response.json()
       setCategories(data)
       setError(null)
@@ -66,6 +66,7 @@ export default function CategoryManagement() {
   const resetForm = () => {
     setFormData({
       name: "",
+      badge: "",
     })
     setEditingCategory(null)
   }
@@ -73,6 +74,7 @@ export default function CategoryManagement() {
   const handleEditClick = (category: Category) => {
     setFormData({
       name: category.name,
+      badge: category.badge || "",
     })
     setEditingCategory(category.id)
     setShowForm(true)
@@ -83,7 +85,6 @@ export default function CategoryManagement() {
       showNotification("Category Name is required", "error")
       return false
     }
-
     return true
   }
 
@@ -98,9 +99,9 @@ export default function CategoryManagement() {
 
     try {
       setIsLoading(true)
-
       const categoryData = {
         name: formData.name.trim(),
+        badge: formData.badge.trim() || null,
       }
 
       let url = `${API_URL}/category`
@@ -177,50 +178,53 @@ export default function CategoryManagement() {
   }
 
   const filteredCategories = categories.filter((category) => {
-    return category.name.toLowerCase().includes(searchTerm.toLowerCase())
+    return (
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (category.badge && category.badge.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
   })
 
   return (
     <div className="min-h-screen bg-white">
       <div className="container mx-auto px-4 py-6 space-y-6 max-w-[1400px]">
         {/* Header Section */}
-       <div className="flex flex-col gap-6">
-  <div className="flex items-center gap-3">
-    <div className="bg-blue-600 p-2.5 rounded-xl">
-      <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-    </div>
-    <div>
-      <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Category Management</h1>
-      <p className="mt-1 text-sm sm:text-base text-gray-500">Create and manage product categories</p>
-    </div>
-  </div>
+        <div className="flex flex-col gap-6">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2.5 rounded-xl">
+              <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900">Category Management</h1>
+              <p className="mt-1 text-sm sm:text-base text-gray-500">Create and manage product categories</p>
+            </div>
+          </div>
 
-  {/* Action Buttons and Search */}
-  <div className="flex items-center justify-end gap-4">
-    <div className="w-[300px]">
-      <div className="relative">
-        <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search categories..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
-        />
-      </div>
-    </div>
-    <button
-      onClick={() => {
-        resetForm()
-        setShowForm(!showForm)
-      }}
-      className="w-[180px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
-    >
-      <Plus className="h-5 w-5" />
-      Add Category
-    </button>
-  </div>
-</div>
+          {/* Action Buttons and Search */}
+          <div className="flex items-center justify-end gap-4">
+            <div className="w-[300px]">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search categories or badges..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+                />
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                resetForm()
+                setShowForm(!showForm)
+              }}
+              className="w-[180px] flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              <Plus className="h-5 w-5" />
+              Add Category
+            </button>
+          </div>
+        </div>
 
         {/* Notification */}
         {notification.show && (
@@ -249,7 +253,9 @@ export default function CategoryManagement() {
               <div className="flex items-center justify-between border-b border-gray-200 p-4 sm:p-6">
                 <div className="flex items-center gap-3">
                   <FolderOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{editingCategory ? "Edit Category" : "Add Category"}</h2>
+                  <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
+                    {editingCategory ? "Edit Category" : "Add Category"}
+                  </h2>
                 </div>
                 <button
                   onClick={() => {
@@ -274,6 +280,19 @@ export default function CategoryManagement() {
                       className="w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                       placeholder="e.g., Blood Tests"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Badge</label>
+                    <input
+                      type="text"
+                      name="badge"
+                      value={formData.badge}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                      placeholder="e.g., Rising Cases, New, Popular"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Optional badge to highlight this category</p>
                   </div>
                 </div>
               </div>
@@ -331,11 +350,18 @@ export default function CategoryManagement() {
               {filteredCategories.map((category) => (
                 <div key={category.id} className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                    <div className="space-y-1 flex-1">
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{category.name}</h3>
+                    <div className="space-y-2 flex-1">
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{category.name}</h3>
+                        {category.badge && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
+                            <Badge className="h-3 w-3" />
+                            {category.badge}
+                          </span>
+                        )}
+                      </div>
                       <div className="text-sm text-gray-500">Category ID: {category.id}</div>
                     </div>
-
                     <div className="flex gap-2 justify-end">
                       <button
                         onClick={() => handleEditClick(category)}

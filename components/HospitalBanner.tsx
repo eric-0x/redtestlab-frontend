@@ -22,7 +22,7 @@ export default function EnhancedBookingCard({
 
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto overflow-hidden px-3">
+    <div className="relative w-full max-w-6xl mx-auto overflow-hidden px-3 md:px-2 mt-12" >
       {/* Main Card */}
       <div className="relative bg-gradient-to-br from-blue-950 via-blue-900 to-indigo-900 rounded-2xl md:rounded-3xl p-6  md:p-10 shadow-2xl border border-blue-800/30">
         {/* Decorative Elements */}
