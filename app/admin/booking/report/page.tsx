@@ -6,6 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 import { useSearchParams } from "next/navigation"
 import React from "react"
 import axios from "axios"
+import { Suspense } from "react";
 
 // Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI("AIzaSyDGD5Us-NdIV7ngcFpM0I_rkUbFJjqsalg")
@@ -595,4 +596,14 @@ ${abnormalTests.map((test) => `${test.testName}: ${test.result} ${test.unit} - $
   )
 }
 
-export default MedicalReportGenerator
+function ReportPageWithParams() {
+  return <MedicalReportGenerator />;
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ReportPageWithParams />
+    </Suspense>
+  );
+}
