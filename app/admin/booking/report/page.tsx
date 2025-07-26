@@ -3,6 +3,9 @@
 import { useState } from "react"
 import { FileText, Download, Edit3, Save, Plus, Trash2, Bot, Loader2 } from "lucide-react"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { useSearchParams } from "next/navigation"
+import React from "react"
+import axios from "axios"
 
 // Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI("AIzaSyDGD5Us-NdIV7ngcFpM0I_rkUbFJjqsalg")
@@ -61,6 +64,25 @@ Follow-up recommended for:
   const [isEditingInterpretation, setIsEditingInterpretation] = useState(false)
   const [isEditingComments, setIsEditingComments] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
+  const [reportId, setReportId] = useState<string | null>(null)
+  const [reportLink, setReportLink] = useState<string | null>(null)
+  const [isCreatingReport, setIsCreatingReport] = useState(false)
+
+  const searchParams = useSearchParams()
+  // On mount, update patientData from query params if present
+  React.useEffect(() => {
+    const name = searchParams.get("name")
+    const age = searchParams.get("age")
+    const gender = searchParams.get("gender")
+    if (name || age || gender) {
+      setPatientData((prev) => ({
+        ...prev,
+        name: name || prev.name,
+        age: age ? Number(age) : prev.age,
+        gender: gender || prev.gender,
+      }))
+    }
+  }, [searchParams])
 
   // Generate AI interpretation using Gemini
   const generateGeminiInterpretation = async () => {
@@ -106,6 +128,24 @@ ${abnormalTests.map((test) => `${test.testName}: ${test.result} ${test.unit} - $
       setComments("Please consult with your healthcare provider for proper interpretation of these results.")
     }
     setIsGeneratingAI(false)
+  }
+
+  // API call to create report
+  const createReport = async () => {
+    setIsCreatingReport(true)
+    try {
+      const response = await axios.post("https://redtestlab.com/api/report/create", {
+        name: patientData.name,
+      })
+      // Assuming response.data = { reportId: string, link: string }
+      setReportId(response.data.reportId)
+      setReportLink(response.data.link)
+    } catch (error) {
+      alert("Failed to create report. Please try again.")
+      setReportId(null)
+      setReportLink(null)
+    }
+    setIsCreatingReport(false)
   }
 
   const addTestResult = () => {
@@ -161,6 +201,14 @@ ${abnormalTests.map((test) => `${test.testName}: ${test.result} ${test.unit} - $
               >
                 <Download className="w-4 h-4" />
                 Generate PDF
+              </button>
+              <button
+                onClick={createReport}
+                disabled={isCreatingReport}
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 disabled:opacity-50"
+              >
+                {isCreatingReport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                {isCreatingReport ? "Creating..." : "Create Report"}
               </button>
             </div>
           </div>
@@ -521,8 +569,18 @@ ${abnormalTests.map((test) => `${test.testName}: ${test.result} ${test.unit} - $
                 <p className="text-sm text-gray-600">{labData.cityPincode}</p>
               </div>
               <div className="text-center">
-                <QRCode value="https://redtestlabs.com" size={100} />
-                <p className="text-xs text-gray-600 mt-1">Scan to verify</p>
+                <QRCode value={reportLink} size={100} />
+                {/* <p className="text-xs text-gray-600 mt-1">Scan to verify</p>
+                {reportLink && (
+                  <a
+                    href={reportLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block text-blue-600 underline text-xs mt-1 break-all"
+                  >
+                    {reportLink}
+                  </a>
+                )} */}
               </div>
             </div>
             <div className="border-t border-gray-300 mt-4 pt-3 text-center">

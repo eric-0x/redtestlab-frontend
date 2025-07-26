@@ -1518,8 +1518,9 @@ const Cart = () => {
   }
 
   const handleNavigateToProducts = () => {
+    const router = useRouter()
     // Navigate to products page
-    window.location.href = "/products"
+    router.push("/test")
   }
 
   // Optimistically update the local cart when changing quantity
@@ -1614,6 +1615,7 @@ const Cart = () => {
   }
 
   const handleUpdateQuantity = async (productId: number, quantity: number) => {
+    
     try {
       // Only update if the quantity is different
       const currentItem = localCart?.items.find((item) => item.productId === productId)

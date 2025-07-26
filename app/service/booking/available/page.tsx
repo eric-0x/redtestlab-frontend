@@ -212,6 +212,9 @@ const ProviderPanel = () => {
   const [otpInput, setOtpInput] = useState("")
   const [otpError, setOtpError] = useState("")
   const [otpSuccess, setOtpSuccess] = useState("")
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const [uploadError, setUploadError] = useState("")
 
   useEffect(() => {
     const storedServiceId = localStorage.getItem("serviceId") || "ccbdbf47-f04d-4284-be76-fb4efa44699e"
@@ -501,6 +504,77 @@ const ProviderPanel = () => {
     }
   }
 
+  const handleFileSelection = async (file: File) => {
+    // Check file size (limit to 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("File size must be less than 10MB");
+      setSelectedFile(null);
+      setFileUrl("");
+      return;
+    }
+    if (file.size === 0) {
+      setUploadError("Selected file appears to be empty. Please choose a different file.");
+      setSelectedFile(null);
+      setFileUrl("");
+      return;
+    }
+    setSelectedFile(file);
+    setUploadError("");
+    setFileUrl("");
+    setUploading(true);
+    try {
+      // Determine the resource type based on file extension
+      const fileExtension = file.name.split('.').pop()?.toLowerCase();
+      const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExtension || '');
+      const isPdf = fileExtension === 'pdf';
+      let uploadUrl = "https://api.cloudinary.com/v1_1/dm8jxispy/auto/upload";
+      let uploadPreset = "E-Rickshaw";
+      if (isPdf) {
+        uploadUrl = "https://api.cloudinary.com/v1_1/dm8jxispy/raw/upload";
+      } else if (!isImage) {
+        uploadUrl = "https://api.cloudinary.com/v1_1/dm8jxispy/raw/upload";
+      }
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
+      let res = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok && isPdf) {
+        // Try alternative approach for PDF
+        const alternativeFormData = new FormData();
+        alternativeFormData.append("file", file);
+        alternativeFormData.append("upload_preset", uploadPreset);
+        alternativeFormData.append("resource_type", "raw");
+        res = await fetch("https://api.cloudinary.com/v1_1/dm8jxispy/auto/upload", {
+          method: "POST",
+          body: alternativeFormData,
+        });
+      }
+      if (!res.ok) {
+        const errorText = await res.text();
+        setUploadError(`Upload failed: ${res.status} ${res.statusText}`);
+        setUploading(false);
+        setFileUrl("");
+        return;
+      }
+      const data = await res.json();
+      if (data.secure_url) {
+        setFileUrl(data.secure_url);
+        setUploadError("");
+      } else {
+        setUploadError("Failed to get upload URL from Cloudinary.");
+        setFileUrl("");
+      }
+    } catch (err) {
+      setUploadError(`Error uploading file: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      setFileUrl("");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 px-2 py-2 sm:px-6 sm:py-6">
       <div className="max-w-7xl mx-auto">
@@ -606,12 +680,14 @@ const ProviderPanel = () => {
                       {booking.status === "IN_PROGRESS" && (
                         <>
                           <div className="flex flex-row w-full md:w-[140px] sm:w-auto sm:flex-row pt-4 md:pt-0">
-                            <button
-                              onClick={() => handleShowOTPModal(booking)}
-                              className="flex-1 px-3 py-2 md:py-0 padding text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              Verify OTP
-                            </button>
+                            {!booking.otpVerified && (
+                              <button
+                                onClick={() => handleShowOTPModal(booking)}
+                                className="flex-1 px-3 py-2 md:py-0 padding text-xs sm:text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              >
+                                Verify OTP
+                              </button>
+                            )}
                             {booking.otpVerified && (
                               <button
                                 onClick={() => setUploadModal({ isOpen: true, booking })}
@@ -997,6 +1073,8 @@ const ProviderPanel = () => {
                   setUploadModal({ isOpen: false, booking: null })
                   setFileUrl("")
                   setRemarks("")
+                  setSelectedFile(null)
+                  setUploadError("")
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -1007,17 +1085,86 @@ const ProviderPanel = () => {
             <p className="text-gray-600 mb-4">Upload test results for Booking #{uploadModal.booking?.id}</p>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">File URL</label>
+              {/* Drag and Drop File Upload Area */}
+              <div
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors duration-200 ${uploading ? 'border-blue-400 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50'}`}
+                onDragOver={e => { e.preventDefault(); e.stopPropagation(); }}
+                onDrop={async e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  const file = e.dataTransfer.files?.[0] || null;
+                  if (file) {
+                    await handleFileSelection(file);
+                  }
+                }}
+                onClick={() => {
+                  document.getElementById('hidden-upload-input')?.click();
+                }}
+              >
                 <input
-                  type="url"
-                  value={fileUrl}
-                  onChange={(e) => setFileUrl(e.target.value)}
-                  placeholder="https://example.com/report.pdf"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  id="hidden-upload-input"
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.txt"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      await handleFileSelection(file);
+                    }
+                  }}
                 />
+                {!selectedFile && !fileUrl && !uploading && (
+                  <>
+                    <div className="text-4xl mb-2">📂</div>
+                    <div className="font-medium text-gray-700">Drag & drop a file here, or <span className="text-blue-600 underline cursor-pointer">browse</span></div>
+                    <div className="text-xs text-gray-500 mt-1">Accepted: PDF, JPG, PNG, DOC, DOCX, TXT (max 10MB)</div>
+                  </>
+                )}
+                {uploading && (
+                  <div className="flex flex-col items-center">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+                    <div className="text-blue-700 font-medium">Uploading...</div>
+                  </div>
+                )}
+                {(selectedFile || fileUrl) && !uploading && (
+                  <div className="flex flex-col items-center">
+                    {/* <div className="text-2xl mb-1">✅</div> */}
+                    <div className="font-medium text-green-700">File uploaded!</div>
+                    <div className="text-xs text-gray-600 mt-1 truncate max-w-full">{selectedFile?.name || fileUrl}</div>
+                    {/* {fileUrl && (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 underline mt-1"
+                      >
+                        View Uploaded File
+                      </a>
+                    )} */}
+                    <button
+                      className="mt-2 text-xs text-red-600 underline"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setSelectedFile(null);
+                        setFileUrl("");
+                        setUploadError("");
+                      }}
+                    >Remove file</button>
+                  </div>
+                )}
               </div>
-
+              {uploadError && (
+                <div className="text-red-600 text-xs mt-1 p-2 bg-red-50 rounded border">
+                  <div className="font-medium">{uploadError}</div>
+                  {uploadError.includes("Invalid image file") && (
+                    <div className="text-xs mt-1">
+                      💡 Tip: Your Cloudinary upload preset might be configured for images only. 
+                      Contact your admin to enable PDF uploads in the upload preset settings.
+                    </div>
+                  )}
+                </div>
+              )}
+              {/* Remarks */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">Remarks</label>
                 <textarea
@@ -1026,22 +1173,34 @@ const ProviderPanel = () => {
                   placeholder="Enter remarks about the test results"
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  disabled={!fileUrl}
                 />
               </div>
-
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => {
                     setUploadModal({ isOpen: false, booking: null })
                     setFileUrl("")
                     setRemarks("")
+                    setSelectedFile(null)
+                    setUploadError("")
                   }}
                   className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleUploadResult}
+                  onClick={async () => {
+                    if (!fileUrl) {
+                      setUploadError("Please upload a file first.");
+                      return;
+                    }
+                    if (!remarks) {
+                      setUploadError("Please enter remarks.");
+                      return;
+                    }
+                    await handleUploadResult();
+                  }}
                   disabled={!fileUrl || !remarks || loading}
                   className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >

@@ -65,8 +65,9 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
 
     checkAuthState()
 
+    // This handler should ONLY check auth state, NOT dispatch the event again!
     const handleAuthStateChange = () => {
-      window.dispatchEvent(new CustomEvent("authStateChanged"))
+      checkAuthState()
     }
     window.addEventListener("authStateChanged", handleAuthStateChange)
     return () => {

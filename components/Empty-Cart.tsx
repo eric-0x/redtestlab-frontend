@@ -2,6 +2,7 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 // Custom icons instead of lucide-react
 const ShoppingCartIcon = () => (
@@ -108,6 +109,7 @@ export default function PremiumEmptyCart({
   const [isHovered, setIsHovered] = useState(false)
   const [animationComplete, setAnimationComplete] = useState(false)
   const [showParticles, setShowParticles] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     // Trigger particles after initial animation
@@ -151,6 +153,8 @@ export default function PremiumEmptyCart({
   return (
     <div className="flex flex-col items-center justify-center w-full max-w-3xl mx-auto sm:py-10 md:py-20 px-6">
       <div className="relative w-full flex flex-col items-center">
+        {/* Back Icon Button */}
+     
         {/* Premium background effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-slate-50 to-white rounded-3xl blur-3xl opacity-70" />
 
@@ -160,6 +164,14 @@ export default function PremiumEmptyCart({
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         >
+             <button
+          className="absolute left-0 top-0 mt-4 ml-4 flex items-center gap-2 text-sky-600 hover:text-sky-800  rounded-full px-4 py-2 shadow-sm transition-colors z-20"
+          onClick={() => router.push("/")}
+          type="button"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12,19 5,12 12,5" /></svg>
+       
+        </button>
           <motion.div
             className="relative mx-auto"
             initial={{ scale: 0.8, opacity: 0 }}
@@ -167,6 +179,7 @@ export default function PremiumEmptyCart({
             transition={{ duration: 0.7, delay: 0.2 }}
             onAnimationComplete={() => setAnimationComplete(true)}
           >
+            
             {/* Animated background circles */}
             <div className="absolute inset-0 flex items-center justify-center">
               <motion.div
@@ -260,7 +273,7 @@ export default function PremiumEmptyCart({
             transition={{ delay: 0.7, duration: 0.6 }}
             className="mt-10 flex flex-col gap-4"
           >
-            <CustomButton onClick={onExplore} variant="primary" className="group">
+            <CustomButton onClick={() => router.push("/test")} variant="primary" className="group">
               <span>{buttonText}</span>
               <motion.div animate={{ x: isHovered ? 5 : 0 }} transition={{ duration: 0.3 }} className="w-5 h-5">
                 <ArrowRightIcon />
