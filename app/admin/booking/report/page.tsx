@@ -3,6 +3,8 @@
 import { useState } from "react"
 import { FileText, Download, Edit3, Save, Plus, Trash2, Bot, Loader2 } from "lucide-react"
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { useSearchParams } from "next/navigation"
+import React from "react"
 
 // Initialize the Google Generative AI client
 const genAI = new GoogleGenerativeAI("AIzaSyDGD5Us-NdIV7ngcFpM0I_rkUbFJjqsalg")
@@ -61,6 +63,22 @@ Follow-up recommended for:
   const [isEditingInterpretation, setIsEditingInterpretation] = useState(false)
   const [isEditingComments, setIsEditingComments] = useState(false)
   const [isGeneratingAI, setIsGeneratingAI] = useState(false)
+
+  const searchParams = useSearchParams()
+  // On mount, update patientData from query params if present
+  React.useEffect(() => {
+    const name = searchParams.get("name")
+    const age = searchParams.get("age")
+    const gender = searchParams.get("gender")
+    if (name || age || gender) {
+      setPatientData((prev) => ({
+        ...prev,
+        name: name || prev.name,
+        age: age ? Number(age) : prev.age,
+        gender: gender || prev.gender,
+      }))
+    }
+  }, [searchParams])
 
   // Generate AI interpretation using Gemini
   const generateGeminiInterpretation = async () => {
