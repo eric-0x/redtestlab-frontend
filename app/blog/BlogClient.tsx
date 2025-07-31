@@ -240,13 +240,13 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
               <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
               <span className="font-medium">Back to Blog</span>
             </button>
-            <button
+            {/* <button
               onClick={handleShare}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Share2 className="h-4 w-4" />
               Share
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
