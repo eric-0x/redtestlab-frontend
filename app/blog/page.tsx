@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Head from "next/head"
 import { Calendar, User, ArrowRight, Search, Clock } from "lucide-react"
+import { navigateToBlog } from "./utils"
 
 export interface Blog {
   id?: number
@@ -99,8 +100,8 @@ export default function BlogList() {
     return content.substring(0, maxLength) + "..."
   }
 
-  const handleBlogClick = (blogId: number) => {
-    router.push(`/blog/${blogId}`)
+  const handleBlogClick = async (blog: Blog) => {
+    await navigateToBlog(router, blog)
   }
 
   const getReadingTime = (content: string) => {
@@ -202,7 +203,7 @@ export default function BlogList() {
               <article
                 key={blog.id}
                 className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1"
-                onClick={() => blog.id && handleBlogClick(blog.id)}
+                onClick={() => handleBlogClick(blog)}
               >
                 {/* Image */}
                 <div className="aspect-[16/10] overflow-hidden relative">
