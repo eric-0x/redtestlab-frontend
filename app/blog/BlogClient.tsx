@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, User, ArrowLeft, Clock, Share2, BookOpen, Tag } from "lucide-react"
 import { isNumericId, generateSlug } from "./utils"
+import Head from "next/head"
 
 export interface Blog {
   id?: number
@@ -228,7 +229,14 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      {/* SEO meta keywords tag */}
+      {blog && blog.keywords && (
+        <Head>
+          <meta name="keywords" content={blog.keywords} />
+        </Head>
+      )}
+      <div className="min-h-screen bg-white">
       {/* Navigation Header */}
       <div className="bg-white border-b sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -367,5 +375,6 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
         </footer>
       </article>
     </div>
+    </>
   )
 }

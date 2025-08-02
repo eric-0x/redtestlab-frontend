@@ -277,7 +277,7 @@ const WomensHealthPackagesGrid = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
         {currentPackages.map((product) => {
           const tags = parseTags(product.tags)
-          const parameters = parseParameters(product.parameters)
+          const parameters = parseParameters(product?.parameters)
           const discountPercentage = Math.round(
             ((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100,
           )
@@ -311,7 +311,7 @@ const WomensHealthPackagesGrid = () => {
                       Reports in <span className="font-semibold text-blue-700">{product.reportTime} hours</span>
                     </div>
                     <div className="border-l border-blue-200 pl-4">
-                      Parameters <span className="font-semibold text-blue-700">{parameters.Parameters || "0"}</span>
+                      Parameters <span className="font-semibold text-blue-700">{parameters?.Parameters || "0"}</span>
                     </div>
                   </div>
                 </div>
