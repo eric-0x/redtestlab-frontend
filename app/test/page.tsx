@@ -353,47 +353,9 @@ const HealthTestPackagesCarousel = () => {
 
   if (loading) {
     return (
-      <>
-        {/* Next.js Head for dynamic meta tags */}
-        {metaTags && !isLoadingMeta && (
-          <Head>
-            <title>{metaTags.title}</title>
-            <meta name="description" content={metaTags.description} />
-            <meta name="keywords" content={metaTags.keywords} />
-            <meta name="author" content={metaTags.author} />
-            <meta charSet={metaTags.charset} />
-            <meta name="viewport" content={metaTags.viewport} />
-            {/* Canonical Link */}
-            {metaTags.canonicallink && <link rel="canonical" href={metaTags.canonicallink} />}
-            {/* Favicon */}
-            {metaTags.favicon && <link rel="icon" href={metaTags.favicon} />}
-            {/* Open Graph Tags */}
-            {metaTags.opengraph && (
-              <>
-                <meta property="og:title" content={metaTags.title} />
-                <meta property="og:description" content={metaTags.description} />
-                <meta property="og:type" content="website" />
-                <meta property="og:url" content={typeof window !== "undefined" ? window.location.href : ""} />
-              </>
-            )}
-            {/* Twitter Card Tags */}
-            {metaTags.twitter && (
-              <>
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={metaTags.title} />
-                <meta name="twitter:description" content={metaTags.description} />
-              </>
-            )}
-            {/* Schema.org structured data */}
-            {metaTags.schema && (
-              <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: metaTags.schema }} />
-            )}
-          </Head>
-        )}
-        <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
-        </div>
-      </>
+      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
     )
   }
 
@@ -409,42 +371,7 @@ const HealthTestPackagesCarousel = () => {
         }}
       />
 
-      {/* Next.js Head for dynamic meta tags */}
-      {metaTags && !isLoadingMeta && (
-        <Head>
-          <title>{metaTags.title}</title>
-          <meta name="description" content={metaTags.description} />
-          <meta name="keywords" content={metaTags.keywords} />
-          <meta name="author" content={metaTags.author} />
-          <meta charSet={metaTags.charset} />
-          <meta name="viewport" content={metaTags.viewport} />
-          {/* Canonical Link */}
-          {metaTags.canonicallink && <link rel="canonical" href={metaTags.canonicallink} />}
-          {/* Favicon */}
-          {metaTags.favicon && <link rel="icon" href={metaTags.favicon} />}
-          {/* Open Graph Tags */}
-          {metaTags.opengraph && (
-            <>
-              <meta property="og:title" content={metaTags.title} />
-              <meta property="og:description" content={metaTags.description} />
-              <meta property="og:type" content="website" />
-              <meta property="og:url" content={typeof window !== "undefined" ? window.location.href : ""} />
-            </>
-          )}
-          {/* Twitter Card Tags */}
-          {metaTags.twitter && (
-            <>
-              <meta name="twitter:card" content="summary_large_image" />
-              <meta name="twitter:title" content={metaTags.title} />
-              <meta name="twitter:description" content={metaTags.description} />
-            </>
-          )}
-          {/* Schema.org structured data */}
-          {metaTags.schema && (
-            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: metaTags.schema }} />
-          )}
-        </Head>
-      )}
+      {/* ...existing code... */}
 
       <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 rounded-xl shadow-sm">
         <Notification
@@ -581,7 +508,7 @@ const HealthTestPackagesCarousel = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {testProducts.map((product) => {
                 const tags = parseTags(product.tags)
-                const parameters = parseParameters(product.parameters)
+                const parameters = parseParameters(product.parameters) || {}
                 const discountPercentage = Math.round(
                   ((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100,
                 )
