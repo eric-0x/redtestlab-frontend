@@ -821,10 +821,31 @@ const AddressForm = ({ onSubmit, onCancel, isLoading, editAddress }: AddressForm
     pincode: editAddress?.pincode || "",
     landmark: editAddress?.landmark || "",
   })
+  const [allowedPincodes, setAllowedPincodes] = useState<string[]>([]);
+  const [pincodeError, setPincodeError] = useState("");
+  useEffect(() => {
+    async function fetchPincodes() {
+      try {
+        const res = await fetch("https://redtestlab.com/api/pincode");
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setAllowedPincodes(data[0].pincode || []);
+        }
+      } catch (e) {
+        setAllowedPincodes([]);
+      }
+    }
+    fetchPincodes();
+  }, []);
 
   const handleSubmit = () => {
-    onSubmit(formData)
-  }
+    if (!allowedPincodes.includes(formData.pincode)) {
+      setPincodeError("Pincode not available. See available pincodes below.");
+      return;
+    }
+    setPincodeError("");
+    onSubmit(formData);
+  };
 
   return (
     <motion.div
@@ -838,8 +859,8 @@ const AddressForm = ({ onSubmit, onCancel, isLoading, editAddress }: AddressForm
       </h3>
       <form
         onSubmit={(e) => {
-          e.preventDefault()
-          handleSubmit()
+          e.preventDefault();
+          handleSubmit();
         }}
         className="space-y-4"
       >
@@ -862,11 +883,22 @@ const AddressForm = ({ onSubmit, onCancel, isLoading, editAddress }: AddressForm
               required
               pattern="[0-9]{6}"
               value={formData.pincode}
-              onChange={(e) => setFormData({ ...formData, pincode: e.target.value })}
+              onChange={(e) => {
+                setFormData({ ...formData, pincode: e.target.value });
+                setPincodeError("");
+              }}
               className="w-full p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition-all"
               placeholder="Enter 6-digit pincode"
               maxLength={6}
             />
+            {pincodeError && (
+              <div className="mt-2 text-red-600 text-sm">
+                {pincodeError}
+                <div className="mt-1 text-gray-700 text-xs">
+                  Available pincodes: {allowedPincodes.join(", ")}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div>
@@ -924,7 +956,7 @@ const AddressForm = ({ onSubmit, onCancel, isLoading, editAddress }: AddressForm
         </div>
       </form>
     </motion.div>
-  )
+  );
 }
 
 // Cart skeleton for initial loading
