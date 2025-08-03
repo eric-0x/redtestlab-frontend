@@ -11,14 +11,19 @@ const API_URL = "https://redtestlab.com/api"
 interface Product {
   id: number
   name: string
-  reportTime: number
-  parameters: string
+  reportTime: number | string
   tags: string
   actualPrice: number
   discountedPrice: number
   categoryId: number
   category?: Category
   productType?: string
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: Array<{
+    id: number
+    packageId: number
+    testId: number
+    Product_ProductPackageLink_testIdToProduct?: Product
+  }>
 }
 
 interface Category {
@@ -29,11 +34,11 @@ interface Category {
 interface FormData {
   name: string
   reportTime: number
-  parameters: string
   tags: string
   actualPrice: number
   discountedPrice: number
   categoryId: number | string
+  testIds: number[]
 }
 
 interface Parameter {
@@ -57,38 +62,50 @@ export default function PackageManagement() {
   const [notification, setNotification] = useState<Notification>({ show: false, message: "", type: "" })
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedId, setExpandedId] = useState<number | null>(null)
-  const [parameters, setParameters] = useState<Parameter[]>([{ key: "", value: "" }])
+// parameters state removed
 
   // Form state
   const [formData, setFormData] = useState<FormData>({
     name: "",
     reportTime: 0,
-    parameters: "",
     tags: "",
     actualPrice: 0,
     discountedPrice: 0,
     categoryId: "",
+    testIds: [],
   })
 
   useEffect(() => {
     fetchProducts()
     fetchCategories()
+    fetchTests()
   }, [])
 
   const fetchProducts = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/product`)
-      if (!response.ok) throw new Error("Failed to fetch products")
+      const response = await fetch(`${API_URL}/product/type/packages`)
+      if (!response.ok) throw new Error("Failed to fetch packages")
       const data = await response.json()
-      // Filter products where productType === "PACKAGE"
-      const packageProducts = data.filter((product: Product) => product.productType === "PACKAGE")
-      setProducts(packageProducts)
+      setProducts(data)
       setError(null)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unknown error occurred")
     } finally {
       setIsLoading(false)
+    }
+  }
+  // Fetch all tests for selection in the form
+  const [allTests, setAllTests] = useState<Product[]>([])
+  const [testSearch, setTestSearch] = useState("")
+  const fetchTests = async () => {
+    try {
+      const response = await fetch(`${API_URL}/product?type=TEST`)
+      if (!response.ok) throw new Error("Failed to fetch tests")
+      const data = await response.json()
+      setAllTests(data)
+    } catch (err: unknown) {
+      // ignore for now
     }
   }
 
@@ -108,98 +125,47 @@ export default function PackageManagement() {
     setFormData({ ...formData, [name]: name === "categoryId" ? Number.parseInt(value) || "" : value })
   }
 
-  const handleParameterChange = (index: number, field: "key" | "value", value: string) => {
-    const updatedParameters = [...parameters]
-    updatedParameters[index][field] = value
-    setParameters(updatedParameters)
-
-    // Update the formData.parameters with the new parameters
-    const parametersObj = parameters.reduce(
-      (acc, param) => {
-        if (param.key.trim()) {
-          acc[param.key] = param.value
-        }
-        return acc
-      },
-      {} as Record<string, string>,
-    )
-
-    setFormData({
-      ...formData,
-      parameters: JSON.stringify(parametersObj),
+  // Handle test selection (checkboxes)
+  const handleTestSelect = (testId: number) => {
+    setFormData((prev) => {
+      const exists = prev.testIds.includes(testId)
+      return {
+        ...prev,
+        testIds: exists ? prev.testIds.filter((id) => id !== testId) : [...prev.testIds, testId],
+      }
     })
   }
 
-  const addParameter = () => {
-    setParameters([...parameters, { key: "", value: "" }])
-  }
+// Removed handleParameterChange
 
-  const removeParameter = (index: number) => {
-    const updatedParameters = [...parameters]
-    updatedParameters.splice(index, 1)
-    setParameters(updatedParameters)
+// Removed addParameter
 
-    // Update formData.parameters after removing a parameter
-    const parametersObj = updatedParameters.reduce(
-      (acc, param) => {
-        if (param.key.trim()) {
-          acc[param.key] = param.value
-        }
-        return acc
-      },
-      {} as Record<string, string>,
-    )
-
-    setFormData({
-      ...formData,
-      parameters: JSON.stringify(parametersObj),
-    })
-  }
+// Removed removeParameter
 
   const resetForm = () => {
     setFormData({
       name: "",
       reportTime: 0,
-      parameters: "",
       tags: "",
       actualPrice: 0,
       discountedPrice: 0,
       categoryId: "",
+      testIds: [],
     })
-    setParameters([{ key: "", value: "" }])
     setEditingProduct(null)
   }
 
-  const handleEditClick = (product: Product) => {
-    let parametersObj = {}
-    try {
-      parametersObj = JSON.parse(product.parameters)
-    } catch (e) {
-      // If parsing fails, try to handle the case where parameters is already a stringified JSON
-      try {
-        const cleanedParams = product.parameters.replace(/^"/, "").replace(/"$/, "").replace(/\\"/g, '"')
-        parametersObj = JSON.parse(cleanedParams)
-      } catch (e2) {
-        parametersObj = {}
-      }
-    }
-
-    // Convert parameters object to array of key-value pairs for the form
-    const paramArray = Object.entries(parametersObj).map(([key, value]) => ({
-      key,
-      value: String(value),
-    }))
-
-    setParameters(paramArray.length > 0 ? paramArray : [{ key: "", value: "" }])
-
+  const handleEditClick = (product: any) => {
+    // Get testIds from ProductPackageLink_ProductPackageLink_packageIdToProduct
+    const testIds = (product.ProductPackageLink_ProductPackageLink_packageIdToProduct || []).map((link: any) => link.testId)
     setFormData({
       name: product.name,
-      reportTime: product.reportTime,
-      parameters: JSON.stringify(parametersObj),
+      reportTime: Number(product.reportTime),
       tags: product.tags,
       actualPrice: product.actualPrice,
       discountedPrice: product.discountedPrice,
       categoryId: product.categoryId,
+      testIds,
     })
     setEditingProduct(product.id)
     setShowForm(true)
@@ -226,24 +192,12 @@ export default function PackageManagement() {
     try {
       setIsLoading(true)
 
-      // Create parameters object from the parameters array
-      const parametersObj = parameters.reduce(
-        (acc, param) => {
-          if (param.key.trim()) {
-            acc[param.key] = param.value
-          }
-          return acc
-        },
-        {} as Record<string, string>,
-      )
-
       const productData = {
         ...formData,
-        parameters: JSON.stringify(parametersObj),
         reportTime: Number.parseInt(formData.reportTime.toString()),
         actualPrice: Number.parseFloat(formData.actualPrice.toString()),
         discountedPrice: Number.parseFloat(formData.discountedPrice.toString()),
-        productType: "PACKAGE", // Add this line to ensure new products have the correct type
+        productType: "PACKAGE",
       }
 
       let url = `${API_URL}/product`
@@ -319,32 +273,10 @@ export default function PackageManagement() {
     }, 3000)
   }
 
-  const formatParameters = (parametersString: string) => {
-    try {
-      const params = JSON.parse(parametersString)
-      return Object.entries(params).map(([key, value]: any) => (
-        <div key={key} className="text-sm">
-          <span className="font-medium text-gray-700">{key}:</span> <span className="text-gray-600">{value}</span>
-        </div>
-      ))
-    } catch (e) {
-      // Try to handle the case where parameters is already a stringified JSON
-      try {
-        const cleanedParams = parametersString.replace(/^"/, "").replace(/"$/, "").replace(/\\"/g, '"')
-        const params = JSON.parse(cleanedParams)
-        return Object.entries(params).map(([key, value]: any) => (
-          <div key={key} className="text-sm">
-            <span className="font-medium text-gray-700">{key}:</span> <span className="text-gray-600">{value}</span>
-          </div>
-        ))
-      } catch (e2) {
-        return <span className="text-red-500">Invalid JSON</span>
-      }
-    }
-  }
+// formatParameters removed
 
   const filteredProducts = products.filter((product) => {
-    const searchFields = [product.name, product.tags, product.category?.name || "", product.parameters]
+    const searchFields = [product.name, product.tags, product.category?.name || ""]
     return searchFields.some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
   })
 
@@ -519,51 +451,29 @@ export default function PackageManagement() {
                     </div>
                   </div>
 
+                  {/* Test selection with search */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm font-medium text-gray-700">Parameters</label>
-                      <button
-                        type="button"
-                        onClick={addParameter}
-                        className="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                      >
-                        <Plus className="h-4 w-4" />
-                        Add Parameter
-                      </button>
-                    </div>
-
-                    <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
-                      {parameters.map((param, index) => (
-                        <div key={index} className="flex gap-3 items-start">
-                          <div className="flex-1">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Select Tests</label>
+                    <input
+                      type="text"
+                      value={testSearch}
+                      onChange={e => setTestSearch(e.target.value)}
+                      placeholder="Search tests..."
+                      className="mb-2 w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto bg-gray-50 p-4 rounded-lg">
+                      {allTests
+                        .filter(test => test.productType === "TEST" && test.name.toLowerCase().includes(testSearch.toLowerCase()))
+                        .map((test) => (
+                          <label key={test.id} className="flex items-center gap-2">
                             <input
-                              type="text"
-                              value={param.key}
-                              onChange={(e) => handleParameterChange(index, "key", e.target.value)}
-                              placeholder="Parameter name"
-                              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              type="checkbox"
+                              checked={formData.testIds.includes(test.id)}
+                              onChange={() => handleTestSelect(test.id)}
                             />
-                          </div>
-                          <div className="flex-1">
-                            <input
-                              type="text"
-                              value={param.value}
-                              onChange={(e) => handleParameterChange(index, "value", e.target.value)}
-                              placeholder="Parameter value"
-                              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          {parameters.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeParameter(index)}
-                              className="text-red-500 hover:text-red-700 p-2"
-                            >
-                              <X className="h-5 w-5" />
-                            </button>
-                          )}
-                        </div>
-                      ))}
+                            <span className="text-gray-700">{test.name}</span>
+                          </label>
+                        ))}
                     </div>
                   </div>
                 </div>
@@ -678,8 +588,18 @@ export default function PackageManagement() {
                           <p className="text-gray-600">{product.reportTime} minutes</p>
                         </div>
                         <div>
-                          <h4 className="font-medium text-gray-700">Parameters</h4>
-                          <div className="mt-2 space-y-1">{formatParameters(product.parameters)}</div>
+                          <h4 className="font-medium text-gray-700">Tests</h4>
+                          <div className="mt-2 space-y-1">
+                            {(product.ProductPackageLink_ProductPackageLink_packageIdToProduct ?? []).length === 0 ? (
+                              <span className="text-gray-500">No tests linked</span>
+                            ) : (
+                              (product.ProductPackageLink_ProductPackageLink_packageIdToProduct ?? []).map((link) => (
+                                <div key={link.testId} className="text-sm">
+                                  <span className="font-medium text-gray-700">{link.Product_ProductPackageLink_testIdToProduct?.name || "Test"}</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
