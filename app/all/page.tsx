@@ -170,7 +170,7 @@ const HealthPackageList = () => {
     const fetchMetaTags = async () => {
       try {
         setIsLoadingMeta(true)
-        const response = await fetch("http://localhost:5000/api/metatags/4")
+        const response = await fetch("https://redtestlab.com/api/metatags/4")
         if (!response.ok) {
           throw new Error("Failed to fetch meta tags")
         }
@@ -214,7 +214,7 @@ const HealthPackageList = () => {
         }
 
         // Fetch all products
-        const productsResponse = await fetch("http://localhost:5000/api/product/type/packages")
+        const productsResponse = await fetch("https://redtestlab.com/api/product/type/packages")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
@@ -225,7 +225,7 @@ const HealthPackageList = () => {
         setPackages(productsData)
 
         // Fetch categories
-        const categoriesResponse = await fetch("http://localhost:5000/api/category")
+        const categoriesResponse = await fetch("https://redtestlab.com/api/category")
         if (!categoriesResponse.ok) {
           throw new Error("Failed to fetch categories")
         }
