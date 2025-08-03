@@ -30,6 +30,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
         title: data.title,
         description: data.description,
       },
+      robots: "index, follow",
     };
   } catch (error) {
     console.error("Error fetching metadata:", error);
@@ -53,6 +54,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
         title: "RedTest Lab",
         description: "Find and book blood tests and health checkups online with RedTest Lab",
       },
+      robots: "index, follow",
     };
   }
 };
