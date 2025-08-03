@@ -35,6 +35,8 @@ const EnhancedHospitalHeader = () => {
   const [menuOpen, setMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [profileSidebarOpen, setProfileSidebarOpen] = useState(false)
+  const [discountBar, setDiscountBar] = useState<{ title: string; discountCode: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const pathname = usePathname()
   const router = useRouter()
 
@@ -62,6 +64,30 @@ const EnhancedHospitalHeader = () => {
     setProfileSidebarOpen(!profileSidebarOpen)
   }
 
+  useEffect(() => {
+    const fetchDiscountBar = async () => {
+      try {
+        const res = await fetch("https://redtestlab.com/api/stickdiscountbar");
+        if (!res.ok) throw new Error("Failed to fetch discount bar");
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setDiscountBar({ title: data[0].title, discountCode: data[0].discountCode });
+        }
+      } catch (err) {
+        setDiscountBar(null);
+      }
+    };
+    fetchDiscountBar();
+  }, []);
+
+  const handleCopyDiscount = () => {
+    if (discountBar?.discountCode) {
+      navigator.clipboard.writeText(discountBar.discountCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="w-full font-sans relative z-50">
       {/* Profile Sidebar */}
@@ -70,10 +96,19 @@ const EnhancedHospitalHeader = () => {
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white text-center py-2 px-2 sm:px-4 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-full"></div>
         <div className="relative flex items-center justify-center text-xs sm:text-sm">
-          <span className="font-medium">🔥 Special Offer: 30% off today!</span>
-          <button className="ml-2 sm:ml-4 bg-white text-blue-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors duration-200 transform hover:scale-105 shadow-md">
-            CLAIM
-          </button>
+          {discountBar ? (
+            <>
+              <span className="font-medium">{discountBar.title}</span>
+              <button
+                className="ml-2 sm:ml-4 bg-white text-blue-600 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs font-bold hover:bg-blue-100 transition-colors duration-200 transform hover:scale-105 shadow-md"
+                onClick={handleCopyDiscount}
+              >
+                {copied ? "Copied!" : "CLAIM"}
+              </button>
+            </>
+          ) : (
+            <span className="font-medium">Special Offer</span>
+          )}
         </div>
       </div>
       {/* Top Navigation Bar with improved gradient and shadow */}

@@ -2,72 +2,42 @@
 
 import { useState, useRef, useEffect } from 'react'
 
-// Define the testimonial data type
+// Define the testimonial data type from API
 interface Testimonial {
-  quote: string
-  doctor: {
-    name: string
-    title: string
-    location: string
-    image: string
-  }
+  id: number
+  name: string
+  specialization: string
+  location: string
+  note: string
+  profileUrl: string
+  createdAt: string
+  updatedAt: string
 }
+
+const API_URL = 'https://redtestlab.com/api/testimonial'
 
 const TestimonialMarquee = () => {
   const [isPaused, setIsPaused] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Testimonial data with real doctor images
-  const testimonials: Testimonial[] = [
-    {
-      quote:
-        'Redcliffe Labs delivers exceptional and accurate diagnostic services with a knowledgeable and dedicated team.',
-      doctor: {
-        name: 'Dr. Vykunta Raju K. N',
-        title: 'Pediatric Neurologist',
-        location: 'Bengaluru',
-        image:
-          'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?q=80&w=200&h=200&auto=format&fit=crop'
-      }
-    },
-    {
-      quote:
-        'Redcliffe Labs has been an invaluable diagnostic service provider for me and my patients. Their commitment to using the latest technologies and techniques to deliver quality & timely reports is commendable.',
-      doctor: {
-        name: 'Dr. Seneesh KV',
-        title: 'Fetal Medicine Specialist',
-        location: 'Kerala',
-        image:
-          'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?q=80&w=200&h=200&auto=format&fit=crop'
-      }
-    },
-    {
-      quote:
-        'Redcliffe Labs is synonymous with trusted healthcare, delivering high-quality diagnostic services on time.',
-      doctor: {
-        name: 'Dr. Chitra Ganesh',
-        title: 'Fetal Medicine Specialist',
-        location: 'Bengaluru',
-        image:
-          'https://images.unsplash.com/photo-1594824476967-48c8b964273f?q=80&w=200&h=200&auto=format&fit=crop'
-      }
-    },
-    {
-      quote:
-        'For reliable diagnostic services, I highly recommend Redcliffe Labs.',
-      doctor: {
-        name: 'Dr. Arun Kumar',
-        title: 'Specialist',
-        location: 'Bengaluru',
-        image:
-          'https://images.unsplash.com/photo-1622253692010-333f2da6031d?q=80&w=200&h=200&auto=format&fit=crop'
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      try {
+        const res = await fetch(API_URL)
+        if (!res.ok) throw new Error('Failed to fetch testimonials')
+        const data = await res.json()
+        setTestimonials(data)
+      } catch (err) {
+        // Optionally handle error
       }
     }
-  ]
+    fetchTestimonials()
+  }, [])
 
-  // Duplicate testimonials for seamless looping
-  const allTestimonials = [...testimonials, ...testimonials]
+  // Show each testimonial only once
+  const allTestimonials = testimonials
 
   // Handle dot navigation
   const scrollToTestimonial = (index: number) => {
@@ -83,30 +53,26 @@ const TestimonialMarquee = () => {
 
   // Handle automatic scrolling
   useEffect(() => {
-    if (isPaused) return
-
+    if (isPaused || testimonials.length === 0) return
     const interval = setInterval(() => {
       const nextIndex = (activeIndex + 1) % testimonials.length
       scrollToTestimonial(nextIndex)
     }, 5000)
-
     return () => clearInterval(interval)
   }, [activeIndex, isPaused, testimonials.length])
 
   // Handle scroll event to update active index
   useEffect(() => {
     const handleScroll = () => {
-      if (containerRef.current) {
+      if (containerRef.current && testimonials.length > 0) {
         const scrollPosition = containerRef.current.scrollLeft
         const itemWidth = window.innerWidth < 768 ? 320 : 420
-        const newIndex =
-          Math.round(scrollPosition / itemWidth) % testimonials.length
+        const newIndex = Math.round(scrollPosition / itemWidth) % testimonials.length
         if (newIndex !== activeIndex) {
           setActiveIndex(newIndex)
         }
       }
     }
-
     const container = containerRef.current
     if (container) {
       container.addEventListener('scroll', handleScroll)
@@ -126,7 +92,6 @@ const TestimonialMarquee = () => {
             Trusted by healthcare professionals across the country
           </p>
         </div>
-
         <div
           className="relative"
           onMouseEnter={() => setIsPaused(true)}
@@ -142,10 +107,7 @@ const TestimonialMarquee = () => {
             {allTestimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[400px] p-4 sm:p-6 md:p-8 mx-2 sm:mx-3 md:mx-4 
-                           my-2 bg-white rounded-xl shadow-lg border border-gray-100 
-                           transform transition-all duration-300 hover:shadow-xl 
-                           flex flex-col h-auto md:h-[320px] snap-center"
+                className="flex-shrink-0 w-[280px] sm:w-[320px] md:w-[400px] p-4 sm:p-6 md:p-8 mx-2 sm:mx-3 md:mx-4 my-2 bg-white rounded-xl shadow-lg border border-gray-100 transform transition-all duration-300 hover:shadow-xl flex flex-col h-auto md:h-[320px] snap-center"
               >
                 <div className="flex-1 flex flex-col">
                   <div className="mb-2">
@@ -159,7 +121,7 @@ const TestimonialMarquee = () => {
                     </svg>
                   </div>
                   <p className="text-sm md:text-base text-gray-700 mb-4 md:mb-6 flex-grow line-clamp-6 md:line-clamp-none">
-                    {testimonial.quote}
+                    {testimonial.note}
                   </p>
                 </div>
 
@@ -167,8 +129,8 @@ const TestimonialMarquee = () => {
                   <div className="flex items-center">
                     <div className="w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shadow-md border-2 border-blue-100">
                       <img
-                        src={testimonial.doctor.image || '/placeholder.svg'}
-                        alt={`Photo of ${testimonial.doctor.name}`}
+                        src={testimonial.profileUrl || '/placeholder.svg'}
+                        alt={`Photo of ${testimonial.name}`}
                         width={48}
                         height={48}
                         className="w-full h-full object-cover"
@@ -176,13 +138,13 @@ const TestimonialMarquee = () => {
                     </div>
                     <div className="ml-3 md:ml-4">
                       <h4 className="font-bold text-sm md:text-base text-blue-900">
-                        {testimonial.doctor.name}
+                        {testimonial.name}
                       </h4>
                       <p className="text-xs md:text-sm text-gray-600">
-                        {testimonial.doctor.title}
+                        {testimonial.specialization}
                       </p>
                       <p className="text-xs text-gray-500">
-                        {testimonial.doctor.location}
+                        {testimonial.location}
                       </p>
                     </div>
                   </div>
@@ -191,16 +153,11 @@ const TestimonialMarquee = () => {
             ))}
           </div>
         </div>
-
         <div className="flex justify-center mt-6 md:mt-8 space-x-2">
           {testimonials.map((_, index) => (
             <button
               key={index}
-              className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-colors duration-300 ${
-                activeIndex === index
-                  ? 'bg-blue-500'
-                  : 'bg-blue-300 hover:bg-blue-400'
-              }`}
+              className={`w-2.5 h-2.5 md:w-3 md:h-3 rounded-full transition-colors duration-300 ${activeIndex === index ? 'bg-blue-500' : 'bg-blue-300 hover:bg-blue-400'}`}
               aria-label={`Scroll to testimonial ${index + 1}`}
               onClick={() => scrollToTestimonial(index)}
             ></button>

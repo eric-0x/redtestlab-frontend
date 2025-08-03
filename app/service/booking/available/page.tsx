@@ -12,17 +12,44 @@ export interface User {
   googleId?: string
 }
 
+export interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
 export interface Category {
   id: number
   name?: string
   description?: string
+  badge?: string
+}
+
+export interface PackageTest {
+  id: number
+  packageId: number
+  testId: number
+  Product_ProductPackageLink_testIdToProduct: {
+    id: number
+    name: string
+    reportTime: number
+    tags: string
+    actualPrice: number
+    discountedPrice: number
+    categoryId: number
+    productType: string
+    category: Category
+    Parameter: Parameter[]
+  }
 }
 
 export interface Product {
   id: number
   name?: string
   desc?: string
-  reportTime?: number
+  reportTime?: number | string
   parameters?: string
   tags?: string
   actualPrice?: number
@@ -35,6 +62,8 @@ export interface Product {
   labCollection?: boolean
   reportDelivery?: string
   category?: Category
+  Parameter?: Parameter[]
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: PackageTest[]
 }
 
 export interface Test {
@@ -470,14 +499,6 @@ const ProviderPanel = () => {
     }).format(amount)
   }
 
-  const parseParameters = (parametersString: string) => {
-    try {
-      return JSON.parse(parametersString)
-    } catch {
-      return {}
-    }
-  }
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "ASSIGNED":
@@ -775,7 +796,11 @@ const ProviderPanel = () => {
                                   <h4 className="font-medium text-gray-900">
                                     {item.product?.name || item.customPackage?.name || "Unknown Item"}
                                   </h4>
-                                  <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    item.product?.productType === "TEST" 
+                                      ? "bg-blue-100 text-blue-800"
+                                      : "bg-purple-100 text-purple-800"
+                                  }`}>
                                     {item.product?.productType || "PACKAGE"}
                                   </span>
                                 </div>
@@ -783,12 +808,29 @@ const ProviderPanel = () => {
                                   <span>Qty: {item.quantity}</span>
                                   {item.product?.reportTime && <span>Report Time: {item.product.reportTime}h</span>}
                                   {item.product?.tags && <span>Tags: {item.product.tags}</span>}
+                                  {item.product?.category && <span>Category: {item.product.category.name}</span>}
+                                </div>
+                                {/* Show parameter/test info */}
+                                <div className="mt-2 text-xs text-gray-500">
+                                  {item.product?.productType === "TEST" && item.product?.Parameter ? (
+                                    <div>
+                                      <span className="font-medium">Parameters: </span>
+                                      {item.product.Parameter.map(p => p.name).join(", ")}
+                                    </div>
+                                  ) : item.product?.productType === "PACKAGE" && item.product?.ProductPackageLink_ProductPackageLink_packageIdToProduct ? (
+                                    <div>
+                                      <span className="font-medium">Includes: </span>
+                                      {item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct
+                                        .map(link => link.Product_ProductPackageLink_testIdToProduct.name)
+                                        .join(", ")}
+                                    </div>
+                                  ) : null}
                                 </div>
                               </div>
                               <div className="text-right">
                                 <span className="font-medium text-gray-900">{formatCurrency(item.price)}</span>
                                 {item.product?.actualPrice && (
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-gray-500 line-through">
                                     Original: {formatCurrency(item.product.actualPrice)}
                                   </div>
                                 )}
@@ -902,17 +944,58 @@ const ProviderPanel = () => {
                               </div>
                             )}
 
-                            {/* Parameters */}
-                            {item.product?.parameters && (
+                            {/* Parameters - Updated for new structure */}
+                            {item.product && (
                               <div className="mt-3">
-                                <span className="text-sm font-medium text-gray-700">Parameters:</span>
+                                <span className="text-sm font-medium text-gray-700">
+                                  {item.product.productType === "TEST" ? "Parameters:" : "Package Contents:"}
+                                </span>
                                 <div className="mt-1 bg-gray-100 rounded p-2 text-xs">
-                                  {Object.entries(parseParameters(item.product.parameters)).map(([key, value]) => (
-                                    <div key={key} className="flex justify-between py-1">
-                                      <span className="font-medium">{key}:</span>
-                                      <span>{String(value)}</span>
+                                  {item.product.productType === "TEST" ? (
+                                    <div className="space-y-1">
+                                      {item.product.Parameter && item.product.Parameter.length > 0 ? (
+                                        item.product.Parameter.map((param) => (
+                                          <div key={param.id} className="flex justify-between py-1">
+                                            <span className="font-medium">{param.name}:</span>
+                                            <span>{param.referenceRange} {param.unit}</span>
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <p className="text-gray-500 italic">No parameters available</p>
+                                      )}
                                     </div>
-                                  ))}
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct && 
+                                       item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 ? (
+                                        item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.map((link) => (
+                                          <div key={link.id} className="border-b border-gray-200 pb-1 last:border-b-0">
+                                            <div className="font-medium text-gray-900">
+                                              {link.Product_ProductPackageLink_testIdToProduct.name}
+                                            </div>
+                                            <div className="text-gray-600 text-xs">
+                                              Report: {link.Product_ProductPackageLink_testIdToProduct.reportTime}h
+                                            </div>
+                                            {link.Product_ProductPackageLink_testIdToProduct.Parameter && 
+                                             link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 0 && (
+                                              <div className="mt-1 space-y-1">
+                                                {link.Product_ProductPackageLink_testIdToProduct.Parameter.map((param) => (
+                                                  <div key={param.id} className="flex justify-between">
+                                                    <span className="text-gray-700">{param.name}:</span>
+                                                    <span className="text-gray-600">
+                                                      {param.referenceRange} {param.unit}
+                                                    </span>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ))
+                                      ) : (
+                                        <p className="text-gray-500 italic">No package contents available</p>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -1345,12 +1428,12 @@ const ProviderPanel = () => {
                                   <span className="font-medium">{item.product.tags}</span>
                                 </div>
                               )}
-                              {item.product.categoryId && (
+                              {/* {item.product.categoryId && (
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Category ID:</span>
                                   <span className="font-medium">{item.product.categoryId}</span>
                                 </div>
-                              )}
+                              )} */}
                               {item.product.category?.name && (
                                 <div className="flex justify-between">
                                   <span className="text-gray-600">Category:</span>
@@ -1409,22 +1492,70 @@ const ProviderPanel = () => {
                           </div>
                         )}
 
-                        {/* Parameters */}
-                        {item.product?.parameters && (
+                        {/* Parameters - Updated for new structure */}
+                        {item.product && (
                           <div className="mt-4">
-                            <h6 className="font-medium text-gray-700 mb-2">Test Parameters:</h6>
+                            <h6 className="font-medium text-gray-700 mb-2">
+                              {item.product.productType === "TEST" ? "Test Parameters:" : "Package Contents:"}
+                            </h6>
                             <div className="bg-gray-50 rounded-lg p-2 sm:p-3">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-1 sm:gap-2 text-xs">
-                                {Object.entries(parseParameters(item.product.parameters)).map(([key, value]) => (
-                                  <div
-                                    key={key}
-                                    className="flex justify-between py-1 border-b border-gray-200 last:border-b-0"
-                                  >
-                                    <span className="font-medium text-gray-700">{key}:</span>
-                                    <span className="text-gray-600">{String(value)}</span>
-                                  </div>
-                                ))}
-                              </div>
+                              {item.product.productType === "TEST" ? (
+                                <div className="space-y-2">
+                                  {item.product.Parameter && item.product.Parameter.length > 0 ? (
+                                    item.product.Parameter.map((param) => (
+                                      <div
+                                        key={param.id}
+                                        className="bg-white border border-gray-100 rounded p-2"
+                                      >
+                                        <div className="font-medium text-gray-900">{param.name}</div>
+                                        <div className="text-xs text-gray-600 mt-1">
+                                          <span className="font-medium">Range:</span> {param.referenceRange} {param.unit}
+                                        </div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-gray-500 italic">No parameters available</p>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="space-y-3">
+                                  {item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct && 
+                                   item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 ? (
+                                    item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.map((link) => (
+                                      <div key={link.id} className="bg-white border border-gray-100 rounded p-3">
+                                        <div className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                                          {link.Product_ProductPackageLink_testIdToProduct.name}
+                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                            TEST
+                                          </span>
+                                        </div>
+                                        <div className="text-xs text-gray-600 mb-2">
+                                          <strong>Report Time:</strong> {link.Product_ProductPackageLink_testIdToProduct.reportTime} hours |{" "}
+                                          <strong>Tags:</strong> {link.Product_ProductPackageLink_testIdToProduct.tags}
+                                        </div>
+                                        {link.Product_ProductPackageLink_testIdToProduct.Parameter && 
+                                         link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 0 && (
+                                          <div className="space-y-1">
+                                            <div className="text-xs font-medium text-gray-700 mb-1">Parameters:</div>
+                                            {link.Product_ProductPackageLink_testIdToProduct.Parameter.map((param) => (
+                                              <div key={param.id} className="bg-gray-50 rounded px-2 py-1">
+                                                <div className="flex justify-between text-xs">
+                                                  <span className="font-medium text-gray-700">{param.name}</span>
+                                                  <span className="text-gray-600">
+                                                    {param.referenceRange} {param.unit}
+                                                  </span>
+                                                </div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-gray-500 italic">No package contents available</p>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         )}

@@ -40,6 +40,10 @@ const Footer = () => {
   const currentYear = new Date().getFullYear()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterLoading, setNewsletterLoading] = useState(false);
+  const [newsletterSuccess, setNewsletterSuccess] = useState<string|null>(null);
+  const [newsletterError, setNewsletterError] = useState<string|null>(null);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -69,6 +73,32 @@ const Footer = () => {
 
     fetchCategories()
   }, [])
+
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNewsletterLoading(true);
+    setNewsletterError(null);
+    setNewsletterSuccess(null);
+    try {
+      const res = await fetch("https://redtestlab.com/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail }),
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.message || "Failed to subscribe");
+      }
+      setNewsletterSuccess("Subscribed successfully!");
+      setNewsletterEmail("");
+      setTimeout(() => setNewsletterSuccess(null), 3000);
+    } catch (err: any) {
+      setNewsletterError(err.message || "Subscription failed");
+      setTimeout(() => setNewsletterError(null), 3000);
+    } finally {
+      setNewsletterLoading(false);
+    }
+  };
 
   return (
     <footer className="bg-gradient-to-br from-blue-900 to-blue-950 text-white">
@@ -101,16 +131,30 @@ const Footer = () => {
               </p>
             </div>
             <div className="w-full md:w-1/2 max-w-md">
-              <div className="flex flex-col sm:flex-row gap-2">
+              <form className="flex flex-col sm:flex-row gap-2" onSubmit={handleNewsletterSubmit}>
                 <input
                   type="email"
+                  value={newsletterEmail}
+                  onChange={e => setNewsletterEmail(e.target.value)}
                   placeholder="Enter your email"
                   className="px-4 py-2 rounded-md bg-blue-800/50 border border-blue-700 text-white placeholder:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400 w-full"
+                  required
+                  disabled={newsletterLoading}
                 />
-                <button className="px-4 py-2 bg-white text-blue-900 rounded-md hover:bg-blue-100 transition-colors font-medium flex items-center justify-center whitespace-nowrap">
-                  Subscribe <ArrowRight className="ml-2 h-4 w-4" />
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-white text-blue-900 rounded-md hover:bg-blue-100 transition-colors font-medium flex items-center justify-center whitespace-nowrap"
+                  disabled={newsletterLoading || !newsletterEmail}
+                >
+                  {newsletterLoading ? "Subscribing..." : <>Subscribe <ArrowRight className="ml-2 h-4 w-4" /></>}
                 </button>
-              </div>
+              </form>
+              {newsletterSuccess && (
+                <p className="text-xs text-green-400 mt-2">{newsletterSuccess}</p>
+              )}
+              {newsletterError && (
+                <p className="text-xs text-red-400 mt-2">{newsletterError}</p>
+              )}
               <p className="text-xs text-blue-300 mt-2">
                 By subscribing, you agree to our{" "}
                 <Link href="/privacy-policy" className="underline hover:text-white">
