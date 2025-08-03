@@ -86,11 +86,42 @@ const Notification = ({ title, message, isVisible, onClose, type = "success" }: 
   )
 }
 
+// Parameter interface
+interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
+// Test Product interface (for tests within packages)
+interface TestProduct {
+  id: number
+  name: string
+  reportTime: number
+  tags: string
+  actualPrice: number
+  discountedPrice: number
+  categoryId: number
+  productType: string
+  category: Category
+  Parameter: Parameter[]
+}
+
+// Package Link interface
+interface ProductPackageLink {
+  id: number
+  packageId: number
+  testId: number
+  Product_ProductPackageLink_testIdToProduct: TestProduct
+}
+
 // Product interface
 interface Product {
   id: number
   name: string
-  reportTime: number
+  reportTime: string
   parameters?: string
   tags: string
   actualPrice: number
@@ -99,6 +130,7 @@ interface Product {
   description?: string
   category?: Category
   productType: string
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: ProductPackageLink[]
 }
 
 // Category interface
@@ -138,7 +170,7 @@ const HealthPackageList = () => {
     const fetchMetaTags = async () => {
       try {
         setIsLoadingMeta(true)
-        const response = await fetch("https://redtestlab.com/api/metatags/4")
+        const response = await fetch("http://localhost:5000/api/metatags/4")
         if (!response.ok) {
           throw new Error("Failed to fetch meta tags")
         }
@@ -182,19 +214,18 @@ const HealthPackageList = () => {
         }
 
         // Fetch all products
-        const productsResponse = await fetch("https://redtestlab.com/api/product")
+        const productsResponse = await fetch("http://localhost:5000/api/product/type/packages")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
         const productsData = await productsResponse.json()
 
-        // Filter products with productType === "PACKAGE"
-        const filteredPackages = productsData.filter((product: Product) => product.productType === "PACKAGE")
-        setAllPackages(filteredPackages)
-        setPackages(filteredPackages)
+        // All data is already filtered for packages from the API
+        setAllPackages(productsData)
+        setPackages(productsData)
 
         // Fetch categories
-        const categoriesResponse = await fetch("https://redtestlab.com/api/category")
+        const categoriesResponse = await fetch("http://localhost:5000/api/category")
         if (!categoriesResponse.ok) {
           throw new Error("Failed to fetch categories")
         }
@@ -385,7 +416,7 @@ const HealthPackageList = () => {
             )}
           </Head>
         )}
-        <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
+        <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       </>
@@ -496,7 +527,7 @@ const HealthPackageList = () => {
         </Head>
       )}
 
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 rounded-xl shadow-sm">
+      <div className="w-full max-w-full mx-auto px-3 md:px-[74px] py-8 bg-gray-50 rounded-xl shadow-sm">
         <Notification
           title={notification.title}
           message={notification.message}
@@ -528,7 +559,7 @@ const HealthPackageList = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="         Search packages by name, tags, or description..."
+                placeholder="Search packages by name, tags, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
@@ -549,7 +580,7 @@ const HealthPackageList = () => {
               }`}
             >
               <SlidersHorizontal size={20} />
-              <span>Filters</span>
+              <span>Filter By Category</span>
               {selectedCategory !== null && (
                 <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   1
@@ -655,6 +686,36 @@ const HealthPackageList = () => {
                         </div>
                       </div>
                       <div className="px-4 py-3 flex-1 overflow-y-auto">
+                        {/* Display Tests in Package */}
+                        {product.ProductPackageLink_ProductPackageLink_packageIdToProduct && 
+                         product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 && (
+                          <div className="mb-3">
+                            <h4 className="text-sm font-medium text-gray-700 mb-2">Tests Included:</h4>
+                            <div className="space-y-2">
+                              {product.ProductPackageLink_ProductPackageLink_packageIdToProduct.map((link) => (
+                                <div key={link.id} className="bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                  <div className="font-medium text-blue-800 text-sm">
+                                    {link.Product_ProductPackageLink_testIdToProduct.name}
+                                  </div>
+                                  {link.Product_ProductPackageLink_testIdToProduct.Parameter && 
+                                   link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 0 && (
+                                    <div className="mt-1">
+                                      <div className="text-xs text-gray-600 mb-1">Parameters:</div>
+                                      <div className="flex flex-wrap gap-1">
+                                        {link.Product_ProductPackageLink_testIdToProduct.Parameter.map((param) => (
+                                          <span key={param.id} className="bg-white px-2 py-0.5 rounded text-xs text-gray-700 border">
+                                            {param.name}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
                         {tags.length > 0 ? (
                           <div className="flex flex-wrap gap-2 mb-3">
                             {tags.slice(0, 3).map((tag, index) => (
@@ -673,15 +734,15 @@ const HealthPackageList = () => {
                           <div className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</div>
                         )}
                       </div>
-                      <div className="p-4 mt-auto border-t border-blue-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="p-4 mt-auto border-t border-blue-50 flex flex-row items-center justify-between gap-[68px] md:gap-3">
                         <div>
                           <div className="flex items-baseline">
                             <span className="text-xl font-bold text-blue-800">₹{product.discountedPrice}</span>
                             <span className="ml-2 text-sm line-through text-gray-500">₹{product.actualPrice}</span>
                           </div>
                           <div className="text-xs text-gray-600">
-                            <span className="text-green-600 font-semibold">{discountPercentage}% off</span> for limited
-                            period
+                            <span className="text-green-600 font-semibold">{discountPercentage}% off</span> Hurry!
+                            
                           </div>
                         </div>
                         <div className="flex space-x-2 w-full sm:w-auto">
