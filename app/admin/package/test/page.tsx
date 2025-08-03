@@ -8,12 +8,20 @@ import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2
 const API_URL = "https://redtestlab.com/api"
 
 // Define types for our data
+interface Parameter {
+  id?: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId?: number
+}
+
 interface Product {
   id: number
   name: string
   reportTime: number
-  testCount?: number
-  parameters: string
+  parameters?: Parameter[]
+  Parameter?: Parameter[]
   tags: string
   actualPrice: number
   discountedPrice: number
@@ -31,8 +39,7 @@ interface Category {
 interface FormData {
   name: string
   reportTime: number
-  testCount?: number
-  parameters: string
+  parameters: Parameter[]
   tags: string
   actualPrice: number
   discountedPrice: number
@@ -42,8 +49,11 @@ interface FormData {
 }
 
 interface Parameter {
-  key: string
-  value: string
+  id?: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId?: number
 }
 
 interface Notification {
@@ -62,14 +72,13 @@ export default function PackageManagement() {
   const [notification, setNotification] = useState<Notification>({ show: false, message: "", type: "" })
   const [searchTerm, setSearchTerm] = useState("")
   const [expandedId, setExpandedId] = useState<number | null>(null)
-  const [parameters, setParameters] = useState<Parameter[]>([{ key: "", value: "" }])
+  const [parameters, setParameters] = useState<Parameter[]>([{ name: "", unit: "", referenceRange: "" }])
 
   // Form state
   const [formData, setFormData] = useState<FormData>({
     name: "",
     reportTime: 0,
-    testCount: 0,
-    parameters: "",
+    parameters: [],
     tags: "",
     actualPrice: 0,
     discountedPrice: 0,
@@ -86,16 +95,12 @@ export default function PackageManagement() {
   const fetchProducts = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch(`${API_URL}/product`)
+      const response = await fetch(`${API_URL}/product/type/tests`)
 
       if (!response.ok) throw new Error("Failed to fetch products")
 
       const data = await response.json()
-
-      // Strictly filter only products with productType = "TEST"
-      const testProducts = data.filter((product: Product) => product.productType === "TEST")
-
-      setProducts(testProducts)
+      setProducts(data)
       setError(null)
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An unknown error occurred")
@@ -120,30 +125,20 @@ export default function PackageManagement() {
     setFormData({ ...formData, [name]: name === "categoryId" ? Number.parseInt(value) || "" : value })
   }
 
-  const handleParameterChange = (index: number, field: "key" | "value", value: string) => {
+  const handleParameterChange = (index: number, field: "name" | "unit" | "referenceRange", value: string) => {
     const updatedParameters = [...parameters]
     updatedParameters[index][field] = value
     setParameters(updatedParameters)
 
     // Update the formData.parameters with the new parameters
-    const parametersObj = parameters.reduce(
-      (acc, param) => {
-        if (param.key.trim()) {
-          acc[param.key] = param.value
-        }
-        return acc
-      },
-      {} as Record<string, string>,
-    )
-
     setFormData({
       ...formData,
-      parameters: JSON.stringify(parametersObj),
+      parameters: updatedParameters,
     })
   }
 
   const addParameter = () => {
-    setParameters([...parameters, { key: "", value: "" }])
+    setParameters([...parameters, { name: "", unit: "", referenceRange: "" }])
   }
 
   const removeParameter = (index: number) => {
@@ -152,19 +147,9 @@ export default function PackageManagement() {
     setParameters(updatedParameters)
 
     // Update formData.parameters after removing a parameter
-    const parametersObj = updatedParameters.reduce(
-      (acc, param) => {
-        if (param.key.trim()) {
-          acc[param.key] = param.value
-        }
-        return acc
-      },
-      {} as Record<string, string>,
-    )
-
     setFormData({
       ...formData,
-      parameters: JSON.stringify(parametersObj),
+      parameters: updatedParameters,
     })
   }
 
@@ -172,8 +157,7 @@ export default function PackageManagement() {
     setFormData({
       name: "",
       reportTime: 0,
-      testCount: 0,
-      parameters: "",
+      parameters: [],
       tags: "",
       actualPrice: 0,
       discountedPrice: 0,
@@ -181,37 +165,20 @@ export default function PackageManagement() {
       description: "",
       productType: "TEST",
     })
-    setParameters([{ key: "", value: "" }])
+    setParameters([{ name: "", unit: "", referenceRange: "" }])
     setEditingProduct(null)
   }
 
   const handleEditClick = (product: Product) => {
-    let parametersObj = {}
-    try {
-      parametersObj = JSON.parse(product.parameters)
-    } catch (e) {
-      // If parsing fails, try to handle the case where parameters is already a stringified JSON
-      try {
-        const cleanedParams = product.parameters.replace(/^"/, "").replace(/"$/, "").replace(/\\"/g, '"')
-        parametersObj = JSON.parse(cleanedParams)
-      } catch (e2) {
-        parametersObj = {}
-      }
-    }
-
-    // Convert parameters object to array of key-value pairs for the form
-    const paramArray = Object.entries(parametersObj).map(([key, value]) => ({
-      key,
-      value: String(value),
-    }))
-
-    setParameters(paramArray.length > 0 ? paramArray : [{ key: "", value: "" }])
+    // Get parameters from either 'parameters' or 'Parameter' field
+    const productParams = product.Parameter || product.parameters || []
+    
+    setParameters(productParams.length > 0 ? productParams : [{ name: "", unit: "", referenceRange: "" }])
 
     setFormData({
       name: product.name,
       reportTime: product.reportTime,
-      testCount: product.testCount || 0,
-      parameters: JSON.stringify(parametersObj),
+      parameters: productParams,
       tags: product.tags,
       actualPrice: product.actualPrice,
       discountedPrice: product.discountedPrice,
@@ -244,22 +211,15 @@ export default function PackageManagement() {
     try {
       setIsLoading(true)
 
-      // Create parameters object from the parameters array
-      const parametersObj = parameters.reduce(
-        (acc, param) => {
-          if (param.key.trim()) {
-            acc[param.key] = param.value
-          }
-          return acc
-        },
-        {} as Record<string, string>,
+      // Filter out empty parameters
+      const validParameters = parameters.filter(param => 
+        param.name.trim() || param.unit.trim() || param.referenceRange.trim()
       )
 
       const productData = {
         ...formData,
-        parameters: JSON.stringify(parametersObj),
+        parameters: validParameters,
         reportTime: Number.parseInt(formData.reportTime.toString()),
-        testCount: Number.parseInt(formData.testCount?.toString() || "0"),
         actualPrice: Number.parseFloat(formData.actualPrice.toString()),
         discountedPrice: Number.parseFloat(formData.discountedPrice.toString()),
         productType: "TEST", // Ensure productType is always TEST
@@ -338,33 +298,27 @@ export default function PackageManagement() {
     }, 3000)
   }
 
-  const formatParameters = (parametersString: string) => {
-    try {
-      const params = JSON.parse(parametersString)
-      return Object.entries(params).map(([key, value]: any) => (
-        <div key={key} className="text-sm">
-          <span className="font-medium text-gray-700">{key}:</span> <span className="text-gray-600">{value}</span>
-        </div>
-      ))
-    } catch (e) {
-      // Try to handle the case where parameters is already a stringified JSON
-      try {
-        const cleanedParams = parametersString.replace(/^"/, "").replace(/"$/, "").replace(/\\"/g, '"')
-        const params = JSON.parse(cleanedParams)
-        return Object.entries(params).map(([key, value]: any) => (
-          <div key={key} className="text-sm">
-            <span className="font-medium text-gray-700">{key}:</span> <span className="text-gray-600">{value}</span>
-          </div>
-        ))
-      } catch (e2) {
-        return <span className="text-red-500">Invalid JSON</span>
-      }
+  const formatParameters = (parameters: Parameter[] | undefined) => {
+    if (!parameters || parameters.length === 0) {
+      return <span className="text-gray-500">No parameters</span>
     }
+
+    return parameters.map((param, index) => (
+      <div key={index} className="text-sm">
+        <span className="font-medium text-gray-700">{param.name}:</span>{" "}
+        <span className="text-gray-600">{param.unit}</span>{" "}
+        <span className="text-gray-500">({param.referenceRange})</span>
+      </div>
+    ))
   }
 
   const filteredProducts = products.filter((product) => {
-    const searchFields = [product.name, product.tags, product.category?.name || "", product.parameters]
-    return searchFields.some((field) => field.toLowerCase().includes(searchTerm.toLowerCase()))
+    const parametersText = (product.Parameter || product.parameters || [])
+      .map(param => `${param.name} ${param.unit} ${param.referenceRange}`)
+      .join(" ")
+    
+    const searchFields = [product.name, product.tags, product.category?.name || "", parametersText]
+    return searchFields.some((field) => field && field.toLowerCase().includes(searchTerm.toLowerCase()))
   })
 
   const toggleExpanded = (id: number) => {
@@ -499,19 +453,6 @@ export default function PackageManagement() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Test Count</label>
-                      <input
-                        type="number"
-                        name="testCount"
-                        value={formData.testCount}
-                        onChange={handleInputChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        min="0"
-                        placeholder="e.g., 15"
-                      />
-                    </div>
-
-                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Original Price</label>
                       <input
                         type="number"
@@ -540,7 +481,7 @@ export default function PackageManagement() {
                     </div>
                   </div>
 
-                  <div>
+                  {/* <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                     <textarea
                       name="description"
@@ -549,7 +490,7 @@ export default function PackageManagement() {
                       className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       rows={3}
                     />
-                  </div>
+                  </div> */}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
@@ -577,35 +518,49 @@ export default function PackageManagement() {
                     </div>
 
                     <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                      <div className="grid grid-cols-3 gap-3 text-sm font-medium text-gray-700 mb-2">
+                        <div>Parameter Name</div>
+                        <div>Unit</div>
+                        <div>Reference Range</div>
+                      </div>
                       {parameters.map((param, index) => (
-                        <div key={index} className="flex gap-3 items-start">
-                          <div className="flex-1">
+                        <div key={index} className="grid grid-cols-3 gap-3 items-start">
+                          <div>
                             <input
                               type="text"
-                              value={param.key}
-                              onChange={(e) => handleParameterChange(index, "key", e.target.value)}
+                              value={param.name}
+                              onChange={(e) => handleParameterChange(index, "name", e.target.value)}
                               placeholder="Parameter name"
                               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
-                          <div className="flex-1">
+                          <div>
                             <input
                               type="text"
-                              value={param.value}
-                              onChange={(e) => handleParameterChange(index, "value", e.target.value)}
-                              placeholder="Parameter value"
+                              value={param.unit}
+                              onChange={(e) => handleParameterChange(index, "unit", e.target.value)}
+                              placeholder="Unit (e.g., mg/dL)"
                               className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             />
                           </div>
-                          {parameters.length > 1 && (
-                            <button
-                              type="button"
-                              onClick={() => removeParameter(index)}
-                              className="text-red-500 hover:text-red-700 p-2"
-                            >
-                              <X className="h-5 w-5" />
-                            </button>
-                          )}
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              value={param.referenceRange}
+                              onChange={(e) => handleParameterChange(index, "referenceRange", e.target.value)}
+                              placeholder="Reference range"
+                              className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            />
+                            {parameters.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeParameter(index)}
+                                className="text-red-500 hover:text-red-700 p-2"
+                              >
+                                <X className="h-5 w-5" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -679,11 +634,6 @@ export default function PackageManagement() {
                         ))}
                       </div>
                       <div className="text-gray-500">Category: {product.category?.name || "N/A"}</div>
-                      {Number(product.testCount) > 0 && (
-  <div className="text-gray-500">
-    Test Count: {product.testCount}
-  </div>
-)}
 
 
                     </div>
@@ -728,12 +678,6 @@ export default function PackageManagement() {
                           <h4 className="font-medium text-gray-700">Report Time</h4>
                           <p className="text-gray-600">{product.reportTime} minutes</p>
                         </div>
-                       {product.testCount && product.testCount > 0 && (
-  <div>
-    <h4 className="font-medium text-gray-700">Test Count</h4>
-    <p className="text-gray-600">{product.testCount}</p>
-  </div>
-)}
 
                         {product.description && (
                           <div className="md:col-span-2">
@@ -743,7 +687,7 @@ export default function PackageManagement() {
                         )}
                         <div className="md:col-span-2">
                           <h4 className="font-medium text-gray-700">Parameters</h4>
-                          <div className="mt-2 space-y-1">{formatParameters(product.parameters)}</div>
+                          <div className="mt-2 space-y-1">{formatParameters(product.Parameter || product.parameters)}</div>
                         </div>
                       </div>
                     </div>
