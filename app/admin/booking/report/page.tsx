@@ -39,12 +39,12 @@ const QRCode = ({ value, size = 100 }: any) => {
 
 const MedicalReportGenerator = () => {
   const [patientData, setPatientData] = useState({
-    name: "John Doe",
-    age: 42,
+    name: "",
+    age: 0,
     gender: "Male",
-    sampleId: "LAB-2025-7890",
-    collectionDate: "2025-06-24",
-    reportDate: "2025-06-25",
+    sampleId: `LAB-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+    collectionDate: new Date().toISOString().split('T')[0],
+    reportDate: new Date().toISOString().split('T')[0],
   });
 
   const [labData, setLabData] = useState({
@@ -54,66 +54,13 @@ const MedicalReportGenerator = () => {
   });
 
   const [testResults, setTestResults] = useState([
-    {
-      testName: "Hemoglobin (Hb)",
-      result: "14.2",
-      unit: "g/dL",
-      refRange: "13.5–17.5",
-      status: "Normal",
-    },
-    {
-      testName: "WBC Count",
-      result: "8,500",
-      unit: "cells/µL",
-      refRange: "4,000–11,000",
-      status: "Normal",
-    },
-    {
-      testName: "Platelets",
-      result: "210,000",
-      unit: "/µL",
-      refRange: "150,000–450,000",
-      status: "Normal",
-    },
-    {
-      testName: "Fasting Glucose",
-      result: "110",
-      unit: "mg/dL",
-      refRange: "70–99",
-      status: "High",
-    },
-    {
-      testName: "Serum Creatinine",
-      result: "1.4",
-      unit: "mg/dL",
-      refRange: "0.7–1.3",
-      status: "High",
-    },
-    {
-      testName: "ALT (Liver Enzyme)",
-      result: "50",
-      unit: "IU/L",
-      refRange: "8–37",
-      status: "High",
-    },
-    {
-      testName: "TSH",
-      result: "2.1",
-      unit: "mIU/L",
-      refRange: "0.4–4.0",
-      status: "Normal",
-    },
+    { testName: "", result: "", unit: "", refRange: "", status: "Normal" },
   ]);
 
   const [interpretation, setInterpretation] =
-    useState(`Elevated Fasting Glucose (110 mg/dL): Suggests prediabetes; recommend HbA1c test for confirmation.
-High Creatinine (1.4 mg/dL): Indicates potential kidney dysfunction; advise renal function panel.
-Increased ALT (50 IU/L): Possible liver inflammation; suggest ultrasound and viral hepatitis screening.`);
+    useState(`Please generate AI interpretation or enter manually.`);
 
-  const [comments, setComments] = useState(`No critical abnormalities detected.
-Follow-up recommended for:
-• Diabetes risk assessment
-• Kidney and liver function monitoring`);
+  const [comments, setComments] = useState(`Please add comments or use AI generation.`);
 
   const [isEditingInterpretation, setIsEditingInterpretation] = useState(false);
   const [isEditingComments, setIsEditingComments] = useState(false);
@@ -128,13 +75,34 @@ Follow-up recommended for:
     const name = searchParams.get("name");
     const age = searchParams.get("age");
     const gender = searchParams.get("gender");
-    if (name || age || gender) {
+    const collectionDate = searchParams.get("collectionDate");
+    const parametersString = searchParams.get("parameters");
+    
+    if (name || age || gender || collectionDate) {
       setPatientData((prev) => ({
         ...prev,
         name: name || prev.name,
         age: age ? Number(age) : prev.age,
         gender: gender || prev.gender,
+        collectionDate: collectionDate || prev.collectionDate,
       }));
+    }
+
+    // Parse and set test parameters
+    if (parametersString) {
+      try {
+        const parameters = JSON.parse(parametersString);
+        const testResultsFromParams = parameters.map((param: any) => ({
+          testName: param.name,
+          result: "",
+          unit: param.unit,
+          refRange: param.referenceRange,
+          status: "Normal"
+        }));
+        setTestResults(testResultsFromParams);
+      } catch (error) {
+        console.error("Error parsing parameters:", error);
+      }
     }
   }, [searchParams]);
 
@@ -467,13 +435,13 @@ ${abnormalTests
                       Test Name
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">
-                      Result
-                    </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">
                       Unit
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">
                       Reference Range
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">
+                      Result
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-sm font-semibold">
                       Status
@@ -499,16 +467,6 @@ ${abnormalTests
                       <td className="border border-gray-300 px-3 py-2">
                         <input
                           type="text"
-                          value={test.result}
-                          onChange={(e) =>
-                            updateTestResult(index, "result", e.target.value)
-                          }
-                          className="w-full border-none focus:outline-none text-sm font-semibold"
-                        />
-                      </td>
-                      <td className="border border-gray-300 px-3 py-2">
-                        <input
-                          type="text"
                           value={test.unit}
                           onChange={(e) =>
                             updateTestResult(index, "unit", e.target.value)
@@ -524,6 +482,16 @@ ${abnormalTests
                             updateTestResult(index, "refRange", e.target.value)
                           }
                           className="w-full border-none focus:outline-none text-sm"
+                        />
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2">
+                        <input
+                          type="text"
+                          value={test.result}
+                          onChange={(e) =>
+                            updateTestResult(index, "result", e.target.value)
+                          }
+                          className="w-full border-none focus:outline-none text-sm font-semibold"
                         />
                       </td>
                       <td className="border border-gray-300 px-3 py-2">
@@ -658,13 +626,13 @@ ${abnormalTests
                       Test Name
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-xs font-semibold">
-                      Result
-                    </th>
-                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-semibold">
                       Unit
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-xs font-semibold">
                       Reference Range
+                    </th>
+                    <th className="border border-gray-300 px-3 py-2 text-left text-xs font-semibold">
+                      Result
                     </th>
                     <th className="border border-gray-300 px-3 py-2 text-left text-xs font-semibold">
                       Status
@@ -680,14 +648,14 @@ ${abnormalTests
                       <td className="border border-gray-300 px-3 py-2 text-xs">
                         {test.testName}
                       </td>
-                      <td className="border border-gray-300 px-3 py-2 text-xs font-semibold">
-                        {test.result}
-                      </td>
                       <td className="border border-gray-300 px-3 py-2 text-xs">
                         {test.unit}
                       </td>
                       <td className="border border-gray-300 px-3 py-2 text-xs">
                         {test.refRange}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-xs font-semibold">
+                        {test.result}
                       </td>
                       <td
                         className={`border border-gray-300 px-3 py-2 text-xs font-semibold ${
@@ -786,18 +754,13 @@ ${abnormalTests
                 <p className="text-sm text-gray-600">{labData.cityPincode}</p>
               </div>
               <div className="text-center">
-                <QRCode value={reportLink} size={100} />
-                {/* <p className="text-xs text-gray-600 mt-1">Scan to verify</p>
-                {reportLink && (
-                  <a
-                    href={reportLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-blue-600 underline text-xs mt-1 break-all"
-                  >
-                    {reportLink}
-                  </a>
-                )} */}
+                <QRCode value={reportLink || `${window.location.origin}/admin/booking/report?${new URLSearchParams({
+                  name: patientData.name,
+                  age: patientData.age.toString(),
+                  gender: patientData.gender,
+                  sampleId: patientData.sampleId
+                }).toString()}`} size={100} />
+                <p className="text-xs text-gray-600 mt-1">Scan to verify</p>
               </div>
             </div>
             <div className="border-t border-gray-300 mt-4 pt-3 text-center">

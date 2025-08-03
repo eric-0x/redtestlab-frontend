@@ -14,16 +14,50 @@ export interface User {
   googleId?: string
 }
 
+export interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
+export interface Category {
+  id: number
+  name: string
+  badge: string
+}
+
+export interface PackageTest {
+  id: number
+  packageId: number
+  testId: number
+  Product_ProductPackageLink_testIdToProduct: {
+    id: number
+    name: string
+    reportTime: number
+    tags: string
+    actualPrice: number
+    discountedPrice: number
+    categoryId: number
+    productType: string
+    category: Category
+    Parameter: Parameter[]
+  }
+}
+
 export interface Product {
   id: number
   name: string
-  reportTime: number
-  parameters: string
+  reportTime: number | string
   tags: string
   actualPrice: number
   discountedPrice: number
   categoryId: number
   productType: string
+  category: Category
+  Parameter?: Parameter[]
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: PackageTest[]
 }
 
 export interface BookingItem {
@@ -87,12 +121,19 @@ export interface Booking {
   resultFileUrl: string | null
   remarks: string | null
   rejectionReason: string | null
+  otpCode: string | null
+  otpVerified: boolean | null
+  otpGeneratedAt: string | null
   createdAt: string
   updatedAt: string
+  memberId: number | null
+  addressId: number | null
   user?: User
   assignedTo?: ServiceProvider
   items?: BookingItem[]
   member?: {
+    id: number;
+    userId: number;
     name: string;
     email: string;
     phoneNumber: string;
@@ -100,14 +141,20 @@ export interface Booking {
     dateOfBirth: string;
     age: number;
     relation: string;
+    createdAt: string;
+    updatedAt: string;
   };
   address?: {
+    id: number;
+    userId: number;
     name: string;
     addressLine: string;
     city: string;
     state: string;
     pincode: string;
     landmark?: string;
+    createdAt: string;
+    updatedAt: string;
   };
 }
 
@@ -157,22 +204,54 @@ const ReturnedBookings = () => {
     }).format(amount)
   }
 
-  const parseParameters = (parametersString: string) => {
-    try {
-      return JSON.parse(parametersString)
-    } catch {
-      return {}
-    }
-  }
-
   const router = useRouter()
 
-  const handleAddToReport = (member: any) => {
-    if (!member) return
+  const extractParametersFromBooking = (booking: Booking) => {
+    const allParameters: Array<{
+      name: string;
+      unit: string;
+      referenceRange: string;
+    }> = []
+
+    booking.items?.forEach(item => {
+      if (item.product?.productType === "PACKAGE") {
+        // Extract parameters from package tests
+        item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct?.forEach(packageTest => {
+          packageTest.Product_ProductPackageLink_testIdToProduct.Parameter?.forEach(param => {
+            allParameters.push({
+              name: param.name,
+              unit: param.unit,
+              referenceRange: param.referenceRange
+            })
+          })
+        })
+      } else if (item.product?.productType === "TEST") {
+        // Extract parameters directly from test
+        item.product.Parameter?.forEach(param => {
+          allParameters.push({
+            name: param.name,
+            unit: param.unit,
+            referenceRange: param.referenceRange
+          })
+        })
+      }
+    })
+
+    return allParameters
+  }
+
+  const handleAddToReport = (booking: Booking) => {
+    if (!booking.member) return
+    
+    const parameters = extractParametersFromBooking(booking)
+    const otpGeneratedDate = booking.otpGeneratedAt ? new Date(booking.otpGeneratedAt).toISOString().split('T')[0] : ''
+    
     const params = new URLSearchParams({
-      name: member.name,
-      age: member.age?.toString() || "",
-      gender: member.gender,
+      name: booking.member.name,
+      age: booking.member.age?.toString() || "",
+      gender: booking.member.gender,
+      collectionDate: otpGeneratedDate,
+      parameters: JSON.stringify(parameters),
     }).toString()
     router.push(`/admin/booking/report?${params}`)
   }
@@ -232,7 +311,7 @@ const ReturnedBookings = () => {
                             </button>
                             {booking.member && (
                               <button
-                                onClick={() => handleAddToReport(booking.member)}
+                                onClick={() => handleAddToReport(booking)}
                                 className="inline-flex items-center justify-center px-4 py-2 border border-blue-600 text-blue-600 rounded-md text-sm font-medium bg-white hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                               >
                                 Add to Report
@@ -386,7 +465,7 @@ const ReturnedBookings = () => {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden">
               <div className="px-4 sm:px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
-                  <span className="inline-block h-5 w-5 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center font-bold">R</span>
+                  <span className="flex h-5 w-5 rounded-full bg-purple-100 text-purple-800 items-center justify-center font-bold">R</span>
                   Returned Booking Details #{detailsModal.booking.id}
                 </h3>
                 <button
@@ -569,19 +648,50 @@ const ReturnedBookings = () => {
                                   <div className="space-y-1">
                                     <div><strong>Report Time:</strong> {item.product?.reportTime} hours</div>
                                     <div><strong>Tags:</strong> {item.product?.tags}</div>
-                                    <div><strong>Category ID:</strong> {item.product?.categoryId}</div>
+                                    <div><strong>Category:</strong> {item.product?.category?.name}</div>
                                   </div>
-                                  <div>
-                                    <p className="font-medium mb-2">Parameters:</p>
+                                <div>
+                                    <p className="font-medium mb-2">Product Details:</p>
                                     <div className="bg-gray-50 border border-gray-200 rounded p-2">
-                                      <div className="text-xs space-y-1">
-                                        {Object.entries(parseParameters(item.product?.parameters || "{}")).map(
-                                          ([key, value]) => (
-                                            <div key={key} className="flex flex-col sm:flex-row sm:justify-between gap-1">
-                                              <span className="font-medium break-words">{key}:</span>
-                                              <span className="break-words">{String(value)}</span>
-                                            </div>
-                                          )
+                                      <div className="text-xs space-y-2">
+                                        {item.product?.productType === "PACKAGE" ? (
+                                          <div>
+                                            <div className="font-medium text-blue-600 mb-1">Package includes:</div>
+                                            {item.product?.ProductPackageLink_ProductPackageLink_packageIdToProduct?.map((packageTest) => (
+                                              <div key={packageTest.id} className="ml-2 mb-2 p-2 bg-white border rounded">
+                                                <div className="font-medium text-green-600">
+                                                  {packageTest.Product_ProductPackageLink_testIdToProduct.name}
+                                                </div>
+                                                <div className="text-xs text-gray-600 mt-1">
+                                                  Report Time: {packageTest.Product_ProductPackageLink_testIdToProduct.reportTime}h | 
+                                                  Category: {packageTest.Product_ProductPackageLink_testIdToProduct.category.name}
+                                                </div>
+                                                {packageTest.Product_ProductPackageLink_testIdToProduct.Parameter?.length > 0 && (
+                                                  <div className="mt-1">
+                                                    <div className="font-medium text-gray-700">Parameters:</div>
+                                                    {packageTest.Product_ProductPackageLink_testIdToProduct.Parameter.map((param) => (
+                                                      <div key={param.id} className="ml-2 text-xs">
+                                                        • {param.name} ({param.unit}) - Range: {param.referenceRange}
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ) : (
+                                          <div>
+                                            <div className="font-medium text-green-600 mb-1">Test Parameters:</div>
+                                            {item.product?.Parameter?.map((param) => (
+                                              <div key={param.id} className="flex justify-between items-center py-1">
+                                                <span className="font-medium">{param.name}:</span>
+                                                <span>{param.unit} (Range: {param.referenceRange})</span>
+                                              </div>
+                                            ))}
+                                            {(!item.product?.Parameter || item.product?.Parameter.length === 0) && (
+                                              <div className="text-gray-500 italic">No parameters available</div>
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     </div>
