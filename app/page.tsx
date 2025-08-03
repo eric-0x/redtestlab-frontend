@@ -1,48 +1,64 @@
-"use client"
-import { useState, useEffect } from "react";
-import CategoryShowcase from "@/components/CategoryShowcase";
-import CustomPackage from "@/components/CustomPackage";
-import Footer from "@/components/Footer";
-import Header from "@/components/Header";
-import HealthPackageCurosel from "@/components/HealthPackageCurosel";
-import Hero from "@/components/Hero";
-import HospitalBanner from "@/components/HospitalBanner";
-import PlayStoreCard from "@/components/PlayStoreCard";
-import ScanList from "@/components/ScanList";
-import ServiceFeatures from "@/components/ServiceFeatures";
-import Slider from "@/components/Slider";
-import Testimonial from "@/components/Testimonial";
-import WomenHealthPackages from "@/components/WomenHealthPackages";
-import ProfileSidebar from "@/components/ProfileSidebar";
+// app/page.tsx
+import { Metadata } from "next";
+import HomeClient from "@/components/HomeClient";
+
+export const generateMetadata = async (): Promise<Metadata> => {
+  try {
+    const response = await fetch("https://redtestlab.com/api/metatags/1");
+    if (!response.ok) {
+      throw new Error("Failed to fetch meta tags");
+    }
+    const data = await response.json();
+
+    return {
+      title: data.title,
+      description: data.description,
+      keywords: data.keywords,
+      authors: [{ name: data.author }],
+      viewport: data.viewport,
+      icons: {
+        icon: data.favicon,
+      },
+      openGraph: {
+        title: data.title,
+        description: data.description,
+        url: data.canonicallink,
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: data.title,
+        description: data.description,
+      },
+      robots: "index, follow",
+    };
+  } catch (error) {
+    console.error("Error fetching metadata:", error);
+    return {
+      title: "RedTest Lab - Health Test Search",
+      description: "Find and book blood tests and health checkups online with RedTest Lab",
+      keywords: "blood test, health checkup, medical tests, lab tests",
+      authors: [{ name: "RedTest Lab" }],
+      viewport: "width=device-width, initial-scale=1",
+      icons: {
+        icon: "/favicon.ico",
+      },
+      openGraph: {
+        title: "RedTest Lab Health Tests",
+        description: "Find and book blood tests and health checkups online with RedTest Lab",
+        url: "https://redtestlab.com",
+        type: "website",
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: "RedTest Lab",
+        description: "Find and book blood tests and health checkups online with RedTest Lab",
+      },
+      robots: "index, follow",
+    };
+  }
+};
 
 export default function Home() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      if (localStorage.getItem("openProfileSidebar") === "true") {
-        setSidebarOpen(true);
-        localStorage.removeItem("openProfileSidebar");
-      }
-    }
-  }, []);
-
-  return (
-    <div>
-      <Header/>
-      <Hero/>
-      <CategoryShowcase/>
-      <HealthPackageCurosel/>
-      <ServiceFeatures/>
-      <WomenHealthPackages/>
-      <CustomPackage/>
-      <ScanList/>
-      <HospitalBanner/>
-      <PlayStoreCard/>
-      <Slider/>
-      <Testimonial/>
-      <Footer/>
-      <ProfileSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-    </div>
-  );
+  return <HomeClient />;
 }

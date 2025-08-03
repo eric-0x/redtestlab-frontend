@@ -67,7 +67,7 @@ const EnhancedCarousel: React.FC = () => {
 
   return (
     <div className="w-full bg-[#FDF8F3] py-16">
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-7xl mx-auto px-4 mt-10">
         {/* Main Carousel Container - Adjusted height for mobile */}
         <div className="relative w-full h-[200px] md:h-64 overflow-visible">
           {/* Navigation Arrows - Hidden on mobile, visible on md and up */}

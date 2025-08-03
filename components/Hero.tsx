@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react"
 import { Search, FileText, Package, Mic, ChevronRight } from "lucide-react"
 import Link from "next/link" // Changed from react-router-dom
 import { useRouter } from "next/navigation" // Changed from react-router-dom
-import Head from "next/head" // Changed from react-helmet-async
 
 // Fix for the Speech Recognition interfaces
 declare global {
@@ -59,74 +58,15 @@ declare global {
     | "timeout"
 }
 
-// Interface for the meta tags API response
-interface MetaTagsResponse {
-  id: number
-  filename: string
-  title: string
-  description: string
-  keywords: string
-  charset: string
-  author: string
-  canonicallink: string
-  favicon: string
-  opengraph: string
-  twitter: string
-  schema: string
-  viewport: string
-  createdAt: string
-  updatedAt: string
-}
-
 const HealthTestSearch = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [isSearchFocused, setIsSearchFocused] = useState(false)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingText, setRecordingText] = useState("")
   const [showAnimation, setShowAnimation] = useState(false)
-  const [metaTags, setMetaTags] = useState<MetaTagsResponse | null>(null)
-  const [isLoadingMeta, setIsLoadingMeta] = useState(true)
   const router = useRouter() // Changed from useNavigate()
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const transcriptRef = useRef("") // Add a ref to store the latest transcript
-
-  // Fetch meta tags from API
-  useEffect(() => {
-    const fetchMetaTags = async () => {
-      try {
-        setIsLoadingMeta(true)
-        const response = await fetch("https://redtestlab.com/api/metatags/1")
-        if (!response.ok) {
-          throw new Error("Failed to fetch meta tags")
-        }
-        const data: MetaTagsResponse = await response.json()
-        setMetaTags(data)
-      } catch (error) {
-        console.error("Error fetching meta tags:", error)
-        // Set default meta tags in case of error
-        setMetaTags({
-          id: 1,
-          filename: "Hero",
-          title: "RedTest Lab - Health Test Search",
-          description: "Find and book blood tests and health checkups online with RedTest Lab",
-          keywords: "blood test, health checkup, medical tests, lab tests",
-          charset: "utf-8",
-          author: "RedTest Lab",
-          canonicallink: typeof window !== "undefined" ? window.location.href : "", // Added check for window
-          favicon: "/favicon.ico",
-          opengraph: "RedTest Lab Health Tests",
-          twitter: "RedTest Lab",
-          schema: "",
-          viewport: "width=device-width, initial-scale=1",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        })
-      } finally {
-        setIsLoadingMeta(false)
-      }
-    }
-    fetchMetaTags()
-  }, [])
 
   // Speech Recognition setup
   useEffect(() => {
@@ -193,41 +133,6 @@ const HealthTestSearch = () => {
 
   return (
     <>
-      {/* Next.js Head for dynamic meta tags */}
-      {metaTags && !isLoadingMeta && (
-        <Head>
-          <title>{metaTags.title}</title>
-          <meta name="description" content={metaTags.description} />
-          <meta name="keywords" content={metaTags.keywords} />
-          <meta name="author" content={metaTags.author} />
-          <meta charSet={metaTags.charset} />
-          <meta name="viewport" content={metaTags.viewport} />
-          {/* Canonical Link */}
-          {metaTags.canonicallink && <link rel="canonical" href={metaTags.canonicallink} />}
-          {/* Favicon */}
-          {metaTags.favicon && <link rel="icon" href={metaTags.favicon} />}
-          {/* Open Graph Tags */}
-          {metaTags.opengraph && (
-            <>
-              <meta property="og:title" content={metaTags.title} />
-              <meta property="og:description" content={metaTags.description} />
-              <meta property="og:type" content="website" />
-              <meta property="og:url" content={typeof window !== "undefined" ? window.location.href : ""} />{" "}
-              {/* Added check for window */}
-            </>
-          )}
-          {/* Twitter Card Tags */}
-          {metaTags.twitter && (
-            <>
-              <meta name="twitter:card" content="summary_large_image" />
-              <meta name="twitter:title" content={metaTags.title} />
-              <meta name="twitter:description" content={metaTags.description} />
-            </>
-          )}
-          {/* Schema.org structured data */}
-          {metaTags.schema && <script type="application/ld+json">{metaTags.schema}</script>}
-        </Head>
-      )}
       <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 px-4 sm:px-8 py-4 sm:py-8 rounded-lg shadow-xl relative overflow-hidden overflow-x-hidden">
         {/* Background decoration circles */}
         <div className="absolute -top-20 -right-20 w-64 h-64 rounded-full bg-blue-700 opacity-30"></div>
