@@ -86,13 +86,21 @@ const Notification = ({ title, message, isVisible, onClose, type = "success" }: 
   )
 }
 
-// Product interface - Updated to match AdminTest fields
+// Parameter interface
+interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
+// Product interface - Updated to match new API response
 interface Product {
   id: number
   name: string
-  reportTime: number
+  reportTime: string
   testCount?: number
-  parameters: string
   tags: string
   actualPrice: number
   discountedPrice: number
@@ -100,6 +108,7 @@ interface Product {
   description?: string
   category?: Category
   productType: string
+  Parameter: Parameter[]
 }
 
 // Category interface
@@ -107,6 +116,7 @@ interface Category {
   id: number
   name: string
   products?: Product[]
+  badge?: string
 }
 
 const HealthTestPackagesCarousel = () => {
@@ -174,17 +184,16 @@ const HealthTestPackagesCarousel = () => {
     const fetchData = async () => {
       try {
         setLoading(true)
-        // Fetch all products
-        const productsResponse = await fetch("https://redtestlab.com/api/product")
+        // Fetch all products from new API endpoint
+        const productsResponse = await fetch("http://localhost:5000/api/product/type/tests")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
         const productsData = await productsResponse.json()
 
-        // Filter products with productType === "TEST"
-        const filteredTests = productsData.filter((product: Product) => product.productType === "TEST")
-        setAllTestProducts(filteredTests)
-        setTestProducts(filteredTests)
+        // All products are already filtered as tests from the new endpoint
+        setAllTestProducts(productsData)
+        setTestProducts(productsData)
 
         // Fetch categories
         const categoriesResponse = await fetch("https://redtestlab.com/api/category")
@@ -215,10 +224,12 @@ const HealthTestPackagesCarousel = () => {
     if (searchTerm.trim() !== "") {
       const searchLower = searchTerm.toLowerCase()
       filtered = filtered.filter((product) => {
+        const parameterNames = getParameterNames(product.Parameter || []).join(" ").toLowerCase()
         return (
           product.name.toLowerCase().includes(searchLower) ||
           product.tags.toLowerCase().includes(searchLower) ||
-          (product.description && product.description.toLowerCase().includes(searchLower))
+          (product.description && product.description.toLowerCase().includes(searchLower)) ||
+          parameterNames.includes(searchLower)
         )
       })
     }
@@ -326,23 +337,14 @@ const HealthTestPackagesCarousel = () => {
     setSelectedCategory(null)
   }
 
-  // Function to parse parameters string to object
-  const parseParameters = (parametersString: string): any => {
-    try {
-      return JSON.parse(parametersString)
-    } catch (e) {
-      try {
-        const cleanedParams = parametersString.replace(/^"/, "").replace(/"$/, "").replace(/\\"/g, '"')
-        return JSON.parse(cleanedParams)
-      } catch (e2) {
-        return {}
-      }
-    }
-  }
-
   // Function to parse tags into an array
   const parseTags = (tags: string): string[] => {
     return tags ? tags.split(",").map((tag) => tag.trim()) : []
+  }
+
+  // Function to get parameter names as array
+  const getParameterNames = (parameters: Parameter[]): string[] => {
+    return parameters ? parameters.map((param) => param.name) : []
   }
 
   // Get category name by ID
@@ -405,7 +407,7 @@ const HealthTestPackagesCarousel = () => {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search tests by name, tags, or description..."
+                placeholder="Search tests by name, tags, parameters, or description..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
@@ -508,7 +510,7 @@ const HealthTestPackagesCarousel = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {testProducts.map((product) => {
                 const tags = parseTags(product.tags)
-                const parameters = parseParameters(product.parameters) || {}
+                const parameterNames = getParameterNames(product.Parameter || [])
                 const discountPercentage = Math.round(
                   ((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100,
                 )
@@ -522,8 +524,8 @@ const HealthTestPackagesCarousel = () => {
                       <div className="p-4 border-b border-blue-50">
                         <div className="flex justify-between items-start">
                           <h3 className="text-lg font-bold text-blue-800 pr-8">{product.name}</h3>
-                          <span className="bg-blue-50 px-2 py-1 rounded-full text-xs text-blue-700">
-                            {getCategoryName(product.categoryId)}
+                          <span className="bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700">
+                            {product.category?.name || getCategoryName(product.categoryId)}
                           </span>
                         </div>
                         <div className="mt-3 flex text-sm text-gray-600 space-x-4">
@@ -535,6 +537,7 @@ const HealthTestPackagesCarousel = () => {
                               Tests <span className="font-semibold text-blue-700">{product.testCount}</span>
                             </div>
                           )}
+                   
                         </div>
                       </div>
                       <div className="px-4 py-3 flex-1 overflow-y-auto">
@@ -556,36 +559,33 @@ const HealthTestPackagesCarousel = () => {
                           <div className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</div>
                         )}
                         {/* Display parameters if available */}
-                        {Object.keys(parameters).length > 0 && (
+                        {parameterNames.length > 0 && (
                           <div className="mt-2 text-sm text-gray-600">
                             <div className="font-medium mb-1 text-xs text-gray-500">PARAMETERS:</div>
-                            <div className="grid grid-cols-1 gap-1">
-                              {Object.entries(parameters)
-                                .slice(0, 3)
-                                .map(([key, value], index) => (
-                                  <div key={index} className="text-xs flex">
-                                    <span className="font-medium text-gray-700 mr-1">{key}:</span>
-                                    <span className="text-gray-600">{String(value)}</span>
-                                  </div>
-                                ))}
-                              {Object.keys(parameters).length > 3 && (
-                                <div className="text-xs text-blue-600 mt-1">
-                                  + {Object.keys(parameters).length - 3} more parameters
-                                </div>
+                            <div className="flex flex-wrap gap-2">
+                              {parameterNames.slice(0, 4).map((paramName, index) => (
+                                <span key={index} className="bg-green-50 px-2 py-1 rounded-full text-xs text-green-700">
+                                  {paramName}
+                                </span>
+                              ))}
+                              {parameterNames.length > 4 && (
+                                <span className="bg-gray-50 px-2 py-1 rounded-full text-xs text-gray-600">
+                                  +{parameterNames.length - 4} more
+                                </span>
                               )}
                             </div>
                           </div>
                         )}
                       </div>
-                      <div className="p-4 mt-auto border-t border-blue-50 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="p-4 mt-auto border-t border-blue-50 flex flex-row flex-wrap items-center justify-between gap-3">
                         <div>
                           <div className="flex items-baseline">
                             <span className="text-xl font-bold text-blue-800">₹{product.discountedPrice}</span>
                             <span className="ml-2 text-sm line-through text-gray-500">₹{product.actualPrice}</span>
                           </div>
                           <div className="text-xs text-gray-600">
-                            <span className="text-green-600 font-semibold">{discountPercentage}% off</span> for limited
-                            period
+                            <span className="text-green-600 font-semibold">{discountPercentage}% Off</span> Hurry!
+                            
                           </div>
                         </div>
                           <button
