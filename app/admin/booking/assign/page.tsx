@@ -32,16 +32,50 @@ export interface User {
   googleId?: string
 }
 
+export interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
+export interface Category {
+  id: number
+  name: string
+  badge: string
+}
+
+export interface PackageTest {
+  id: number
+  packageId: number
+  testId: number
+  Product_ProductPackageLink_testIdToProduct: {
+    id: number
+    name: string
+    reportTime: number
+    tags: string
+    actualPrice: number
+    discountedPrice: number
+    categoryId: number
+    productType: string
+    category: Category
+    Parameter: Parameter[]
+  }
+}
+
 export interface Product {
   id: number
   name: string
-  reportTime: number
-  parameters: string
+  reportTime: number | string
   tags: string
   actualPrice: number
   discountedPrice: number
   categoryId: number
   productType: string
+  category?: Category
+  Parameter?: Parameter[]
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: PackageTest[]
 }
 
 export interface BookingItem {
@@ -174,6 +208,7 @@ const AdminPanel = () => {
       setLoading(true)
       const response = await fetch(`${BASE_URL}/api/bookings/admin/pending`)
       const data = await response.json()
+      console.log("Pending bookings data:", data) // Debug log
       setPendingBookings(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error("Error fetching pending bookings:", error)
@@ -242,14 +277,6 @@ const AdminPanel = () => {
       style: "currency",
       currency: "INR",
     }).format(amount)
-  }
-
-  const parseParameters = (parametersString: string) => {
-    try {
-      return JSON.parse(parametersString)
-    } catch {
-      return {}
-    }
   }
 
   const formatDateOfBirth = (dateString: string) => {
@@ -481,31 +508,68 @@ const AdminPanel = () => {
                             </h4>
                             <div className="bg-gray-50 border border-gray-200 rounded-lg">
                               <div className="p-3 sm:p-4">
-                                <div className="space-y-3">
-                                  {booking.items.slice(0, 2).map((item) => (
+                                <div className="space-y-4">
+                                  {booking.items.slice(0, 3).map((item) => (
                                     <div
                                       key={item.id}
-                                      className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2"
+                                      className="bg-white border border-gray-200 rounded-lg p-3"
                                     >
-                                      <div className="flex-1 min-w-0">
-                                        <span className="font-medium text-gray-900 block truncate">
-                                          {item.product?.name}
-                                        </span>
-                                        <div className="flex flex-wrap items-center gap-2 mt-1">
-                                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
-                                            {item.product?.productType}
-                                          </span>
-                                          <span className="text-xs text-gray-500">Qty: {item.quantity}</span>
+                                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-center gap-2 mb-2">
+                                            <span className="font-medium text-gray-900 truncate">
+                                              {item.product?.name}
+                                            </span>
+                                            <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                                              item.product?.productType === "TEST" 
+                                                ? "bg-blue-100 text-blue-800 border-blue-200"
+                                                : "bg-purple-100 text-purple-800 border-purple-200"
+                                            }`}>
+                                              {item.product?.productType}
+                                            </span>
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                            <div>Qty: {item.quantity}</div>
+                                            <div>Report: {item.product?.reportTime}h</div>
+                                            <div>Category: {item.product?.category?.name || 'N/A'}</div>
+                                            <div>
+                                              {item.product?.productType === "TEST" 
+                                                ? `Parameters: ${item.product?.Parameter?.length || 0}`
+                                                : `Tests: ${item.product?.ProductPackageLink_ProductPackageLink_packageIdToProduct?.length || 0}`
+                                              }
+                                            </div>
+                                          </div>
+                                          {/* Show parameter names for TEST or included tests for PACKAGE */}
+                                          <div className="mt-2">
+                                            {item.product?.productType === "TEST" && item.product?.Parameter ? (
+                                              <div className="text-xs text-gray-500">
+                                                <span className="font-medium">Parameters: </span>
+                                                {item.product.Parameter.map(p => p.name).join(", ")}
+                                              </div>
+                                            ) : item.product?.productType === "PACKAGE" && item.product?.ProductPackageLink_ProductPackageLink_packageIdToProduct ? (
+                                              <div className="text-xs text-gray-500">
+                                                <span className="font-medium">Includes: </span>
+                                                {item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct
+                                                  .map(link => link.Product_ProductPackageLink_testIdToProduct.name)
+                                                  .join(", ")}
+                                              </div>
+                                            ) : null}
+                                          </div>
+                                        </div>
+                                        <div className="text-right flex-shrink-0">
+                                          <div className="font-semibold text-gray-900">
+                                            {formatCurrency(item.price)}
+                                          </div>
+                                          <div className="text-xs text-gray-500 line-through">
+                                            {formatCurrency(item.product?.actualPrice || 0)}
+                                          </div>
                                         </div>
                                       </div>
-                                      <span className="font-semibold text-gray-900 self-start sm:self-auto">
-                                        {formatCurrency(item.price)}
-                                      </span>
                                     </div>
                                   ))}
-                                  {booking.items.length > 2 && (
+                                  {booking.items.length > 3 && (
                                     <p className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
-                                      +{booking.items.length - 2} more items
+                                      +{booking.items.length - 3} more items
                                     </p>
                                   )}
                                 </div>
@@ -832,11 +896,15 @@ const AdminPanel = () => {
                           {detailsModal.booking.items.map((item) => (
                             <div key={item.id} className="bg-white border border-gray-200 rounded-lg">
                               <div className="p-3 sm:p-4">
-                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-3">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                                   <div className="min-w-0">
                                     <h5 className="font-medium text-gray-900 break-words">{item.product?.name}</h5>
                                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
+                                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                                        item.product?.productType === "TEST" 
+                                          ? "bg-blue-100 text-blue-800 border-blue-200"
+                                          : "bg-purple-100 text-purple-800 border-purple-200"
+                                      }`}>
                                         {item.product?.productType}
                                       </span>
                                       <span className="text-sm text-gray-600">Quantity: {item.quantity}</span>
@@ -850,40 +918,83 @@ const AdminPanel = () => {
                                   </div>
                                 </div>
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
-                                  <div className="space-y-1">
-                                    <div className="flex items-center gap-2">
-                                   
-                                      <span>
-                                        <strong>Report Time:</strong> {item.product?.reportTime} hours
-                                      </span>
+                                  <div className="space-y-2">
+                                    <div>
+                                      <strong>Report Time:</strong> {item.product?.reportTime} hours
                                     </div>
                                     <div className="break-words">
                                       <strong>Tags:</strong> {item.product?.tags}
                                     </div>
-                                    {/* <div>
-                                      <strong>Category ID:</strong> {item.product?.categoryId}
-                                    </div> */}
+                                    <div className="break-words">
+                                      <strong>Category:</strong> {item.product?.category?.name || 'N/A'}
+                                    </div>
                                     <div>
                                       <strong>Discounted Price:</strong>{" "}
                                       {formatCurrency(item.product?.discountedPrice || 0)}
                                     </div>
                                   </div>
                                   <div>
-                                    <p className="font-medium mb-2">Parameters:</p>
-                                    <div className="bg-gray-50 border border-gray-200 rounded p-2">
-                                      <div className="text-xs space-y-1">
-                                        {Object.entries(parseParameters(item.product?.parameters || "{}")).map(
-                                          ([key, value]) => (
-                                            <div
-                                              key={key}
-                                              className="flex flex-col sm:flex-row sm:justify-between gap-1"
-                                            >
-                                              <span className="font-medium break-words">{key}:</span>
-                                              <span className="break-words">{String(value)}</span>
-                                            </div>
-                                          ),
-                                        )}
-                                      </div>
+                                    <p className="font-medium mb-2">
+                                      {item.product?.productType === "TEST" ? "Parameters:" : "Package Contents:"}
+                                    </p>
+                                    <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                                      {item.product?.productType === "TEST" ? (
+                                        <div className="space-y-2">
+                                          {item.product?.Parameter && item.product.Parameter.length > 0 ? (
+                                            item.product.Parameter.map((param) => (
+                                              <div
+                                                key={param.id}
+                                                className="bg-white border border-gray-100 rounded p-2"
+                                              >
+                                                <div className="font-medium text-gray-900">{param.name}</div>
+                                                <div className="text-xs text-gray-600 mt-1">
+                                                  <span className="font-medium">Range:</span> {param.referenceRange} {param.unit}
+                                                </div>
+                                              </div>
+                                            ))
+                                          ) : (
+                                            <p className="text-gray-500 italic">No parameters available</p>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div className="space-y-3">
+                                          {item.product?.ProductPackageLink_ProductPackageLink_packageIdToProduct && 
+                                           item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 ? (
+                                            item.product.ProductPackageLink_ProductPackageLink_packageIdToProduct.map((link) => (
+                                              <div key={link.id} className="bg-white border border-gray-100 rounded p-3">
+                                                <div className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                                                  {link.Product_ProductPackageLink_testIdToProduct.name}
+                                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                                                    TEST
+                                                  </span>
+                                                </div>
+                                                <div className="text-xs text-gray-600 mb-2">
+                                                  <strong>Report Time:</strong> {link.Product_ProductPackageLink_testIdToProduct.reportTime} hours |{" "}
+                                                  <strong>Tags:</strong> {link.Product_ProductPackageLink_testIdToProduct.tags}
+                                                </div>
+                                                {link.Product_ProductPackageLink_testIdToProduct.Parameter && 
+                                                 link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 0 && (
+                                                  <div className="space-y-1">
+                                                    <div className="text-xs font-medium text-gray-700 mb-1">Parameters:</div>
+                                                    {link.Product_ProductPackageLink_testIdToProduct.Parameter.map((param) => (
+                                                      <div key={param.id} className="bg-gray-50 rounded px-2 py-1">
+                                                        <div className="flex justify-between text-xs">
+                                                          <span className="font-medium text-gray-700">{param.name}</span>
+                                                          <span className="text-gray-600">
+                                                            {param.referenceRange} {param.unit}
+                                                          </span>
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                )}
+                                              </div>
+                                            ))
+                                          ) : (
+                                            <p className="text-gray-500 italic">No package contents available</p>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
