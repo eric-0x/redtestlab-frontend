@@ -6,6 +6,37 @@ import { useCart } from "@/components/CartContext"; // Updated import path
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation"; // Changed from react-router-dom
 
+// Parameter interface
+interface Parameter {
+  id: number;
+  name: string;
+  unit: string;
+  referenceRange: string;
+  productId: number;
+}
+
+// Test Product interface (for tests within packages)
+interface TestProduct {
+  id: number;
+  name: string;
+  reportTime: number;
+  tags: string;
+  actualPrice: number;
+  discountedPrice: number;
+  categoryId: number;
+  productType: string;
+  category: Category;
+  Parameter: Parameter[];
+}
+
+// Package Link interface
+interface ProductPackageLink {
+  id: number;
+  packageId: number;
+  testId: number;
+  Product_ProductPackageLink_testIdToProduct: TestProduct;
+}
+
 // Notification component
 interface NotificationProps {
   title: string;
@@ -77,19 +108,23 @@ const Notification = ({
 interface Product {
   id: number;
   name: string;
-  reportTime: number;
-  parameters: string;
+  reportTime: string;
+  parameters?: string;
   tags: string;
   actualPrice: number;
   discountedPrice: number;
   categoryId: number;
+  description?: string;
+  category?: Category;
+  productType: string;
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: ProductPackageLink[];
 }
 
 // Category interface
 interface Category {
   id: number;
   name: string;
-  products: Product[];
+  products?: Product[];
 }
 
 const HealthPackagesCarousel = () => {
@@ -110,14 +145,25 @@ const HealthPackagesCarousel = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("https://redtestlab.com/api/category");
+        const response = await fetch("http://localhost:5000/api/product/type/packages");
         if (!response.ok) {
-          throw new Error("Failed to fetch categories");
+          throw new Error("Failed to fetch packages");
         }
         const data = await response.json();
-        setCategories(data);
+        
+        // Filter for category ID 1 (Top Health Packages)
+        const healthPackages = data.filter((product: Product) => product.categoryId === 1);
+        
+        // Create a mock category structure for compatibility
+        const topHealthCategory: Category = {
+          id: 1,
+          name: "Top Health Packages",
+          products: healthPackages
+        };
+        
+        setCategories([topHealthCategory]);
       } catch (err) {
-        console.error("Error fetching categories:", err);
+        console.error("Error fetching packages:", err);
       } finally {
         setLoading(false);
       }
@@ -197,9 +243,9 @@ const HealthPackagesCarousel = () => {
   const healthPackages = healthPackagesCategory?.products || [];
 
   // Function to parse parameters string to object
-  const parseParameters = (parametersString: string): any => {
+  const parseParameters = (parametersString?: string): any => {
     try {
-      return JSON.parse(parametersString);
+      return parametersString ? JSON.parse(parametersString) : {};
     } catch (e) {
       return {};
     }
@@ -212,7 +258,7 @@ const HealthPackagesCarousel = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
+      <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
@@ -271,7 +317,6 @@ const HealthPackagesCarousel = () => {
           {healthPackages.length > 0 ? (
             healthPackages.map((product) => {
               const tags = parseTags(product.tags);
-              const parameters = parseParameters(product?.parameters);
               const discountPercentage = Math.round(
                 ((product.actualPrice - product.discountedPrice) /
                   product.actualPrice) *
@@ -280,7 +325,7 @@ const HealthPackagesCarousel = () => {
               return (
                 <div
                   key={product.id}
-                  className="min-w-[320px] max-w-[320px] h-[360px] bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1"
+                  className="min-w-[320px] max-w-[320px] bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1"
                 >
                   <div className="h-full flex flex-col">
                     <div className="p-4 border-b border-blue-50">
@@ -288,20 +333,9 @@ const HealthPackagesCarousel = () => {
                         <h3 className="text-lg font-bold text-blue-800 pr-8">
                           {product.name}
                         </h3>
-                        <button className="text-blue-600">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
-                        </button>
+                        <span className="bg-blue-50 px-2 py-1 rounded-full text-xs text-blue-700">
+                          Top Health
+                        </span>
                       </div>
                       <div className="mt-3 flex text-sm text-gray-600 space-x-4">
                         <div>
@@ -310,33 +344,75 @@ const HealthPackagesCarousel = () => {
                             {product.reportTime} hours
                           </span>
                         </div>
-                        <div className="border-l border-blue-100 pl-4">
-                          Parameters{" "}
-                          <span className="font-semibold text-blue-700">
-                            {parameters?.Parameters || 0}
-                          </span>
-                        </div>
                       </div>
                     </div>
-                    <div className="px-4 py-3 flex-1">
+                    <div className="px-4 py-3 flex-1 overflow-y-auto">
+                      {/* Display Tests in Package */}
+                      {product.ProductPackageLink_ProductPackageLink_packageIdToProduct && 
+                       product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 && (
+                        <div className="mb-3">
+                          <h4 className="text-sm font-medium text-gray-700 mb-2">Tests Included:</h4>
+                          <div className="space-y-2">
+                            {product.ProductPackageLink_ProductPackageLink_packageIdToProduct.slice(0, 2).map((link) => (
+                              <div key={link.id} className="bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                <div className="font-medium text-blue-800 text-sm">
+                                  {link.Product_ProductPackageLink_testIdToProduct.name}
+                                </div>
+                                {link.Product_ProductPackageLink_testIdToProduct.Parameter && 
+                                 link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 0 && (
+                                  <div className="mt-1">
+                                    <div className="flex flex-wrap gap-1">
+                                      {link.Product_ProductPackageLink_testIdToProduct.Parameter.slice(0, 3).map((param) => (
+                                        <span key={param.id} className="bg-white px-2 py-0.5 rounded text-xs text-gray-700 border">
+                                          {param.name}
+                                        </span>
+                                      ))}
+                                      {link.Product_ProductPackageLink_testIdToProduct.Parameter.length > 3 && (
+                                        <span className="bg-gray-50 px-2 py-0.5 rounded text-xs text-gray-600">
+                                          +{link.Product_ProductPackageLink_testIdToProduct.Parameter.length - 3} more
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                            {product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 2 && (
+                              <div className="text-xs text-gray-600 text-center">
+                                +{product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length - 2} more tests
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
                       {tags.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                          {tags.map((tag, index) => (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {tags.slice(0, 3).map((tag, index) => (
                             <span
                               key={index}
-                              className="bg-blue-50 px-3 py-1 rounded-full text-sm text-blue-700"
+                              className="bg-blue-50 px-3 py-1 rounded-full text-xs text-blue-700"
                             >
                               {tag}
                             </span>
                           ))}
+                          {tags.length > 3 && (
+                            <span className="bg-gray-50 px-3 py-1 rounded-full text-xs text-gray-600">
+                              +{tags.length - 3} more
+                            </span>
+                          )}
                         </div>
                       ) : (
                         <div className="text-sm text-gray-500 italic">
                           Complete health package with comprehensive testing
                         </div>
                       )}
+                      
+                      {product.description && (
+                        <div className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</div>
+                      )}
                     </div>
-                    <div className="p-4 mt-auto border-t border-blue-50 flex items-center space-x-3">
+                    <div className="p-4 mt-auto border-t border-blue-50 flex items-center justify-between">
                       <div>
                         <div className="flex items-baseline">
                           <span className="text-xl font-bold text-blue-800">
@@ -350,7 +426,7 @@ const HealthPackagesCarousel = () => {
                           <span className="text-green-600 font-semibold">
                             {discountPercentage}% off
                           </span>{" "}
-                          for limited period
+                          Hurry!
                         </div>
                       </div>
 

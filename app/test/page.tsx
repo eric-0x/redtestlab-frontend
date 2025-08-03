@@ -355,7 +355,7 @@ const HealthTestPackagesCarousel = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
+      <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     )
@@ -375,7 +375,7 @@ const HealthTestPackagesCarousel = () => {
 
       {/* ...existing code... */}
 
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 rounded-xl shadow-sm">
+      <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 rounded-xl shadow-sm">
         <Notification
           title={notification.title}
           message={notification.message}
@@ -428,7 +428,7 @@ const HealthTestPackagesCarousel = () => {
               }`}
             >
               <SlidersHorizontal size={20} />
-              <span>Filters</span>
+              <span>Filter By Category</span>
               {selectedCategory !== null && (
                 <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   1

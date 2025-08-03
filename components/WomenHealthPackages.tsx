@@ -6,6 +6,37 @@ import { useCart } from "@/components/CartContext" // Updated import path
 import { AnimatePresence, motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 
+// Parameter interface
+interface Parameter {
+  id: number
+  name: string
+  unit: string
+  referenceRange: string
+  productId: number
+}
+
+// Test Product interface (for tests within packages)
+interface TestProduct {
+  id: number
+  name: string
+  reportTime: number
+  tags: string
+  actualPrice: number
+  discountedPrice: number
+  categoryId: number
+  productType: string
+  category: Category
+  Parameter: Parameter[]
+}
+
+// Package Link interface
+interface ProductPackageLink {
+  id: number
+  packageId: number
+  testId: number
+  Product_ProductPackageLink_testIdToProduct: TestProduct
+}
+
 // Notification component
 interface NotificationProps {
   title: string
@@ -68,19 +99,23 @@ const Notification = ({ title, message, isVisible, onClose, type = "success" }: 
 interface Product {
   id: number
   name: string
-  reportTime: number
-  parameters: string
+  reportTime: string
+  parameters?: string
   tags: string
   actualPrice: number
   discountedPrice: number
   categoryId: number
+  description?: string
+  category?: Category
+  productType: string
+  ProductPackageLink_ProductPackageLink_packageIdToProduct?: ProductPackageLink[]
 }
 
 // Category interface
 interface Category {
   id: number
   name: string
-  products: Product[]
+  products?: Product[]
 }
 
 const WomensHealthPackagesGrid = () => {
@@ -107,14 +142,40 @@ const WomensHealthPackagesGrid = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch("https://redtestlab.com/api/category")
+        const response = await fetch("http://localhost:5000/api/product/type/packages")
         if (!response.ok) {
-          throw new Error("Failed to fetch categories")
+          throw new Error("Failed to fetch packages")
         }
         const data = await response.json()
-        setCategories(data)
+        
+        // Filter for women-related category IDs
+        const womenProducts = data.filter((product: Product) => womenCategoryIds.includes(product.categoryId))
+        
+        // Group products by category
+        const categoriesWithProducts: Category[] = []
+        womenCategoryIds.forEach(categoryId => {
+          const categoryProducts = womenProducts.filter((product: Product) => product.categoryId === categoryId)
+          if (categoryProducts.length > 0) {
+            const categoryNames: { [key: number]: string } = {
+              27: "Women's Wellness",
+              28: "Fertility Tests", 
+              33: "Pregnancy Care",
+              32: "Hormone Tests",
+              31: "PCOS/PCOD",
+              29: "Thyroid Tests",
+              30: "Vitamin Tests"
+            }
+            categoriesWithProducts.push({
+              id: categoryId,
+              name: categoryNames[categoryId] || `Category ${categoryId}`,
+              products: categoryProducts
+            })
+          }
+        })
+        
+        setCategories(categoriesWithProducts)
       } catch (err) {
-        console.error("Error fetching categories:", err)
+        console.error("Error fetching packages:", err)
       } finally {
         setLoading(false)
       }
@@ -141,9 +202,9 @@ const WomensHealthPackagesGrid = () => {
   }, [searchTerm, selectedCategory])
 
   // Function to parse parameters string to object
-  const parseParameters = (parametersString: string): any => {
+  const parseParameters = (parametersString?: string): any => {
     try {
-      return JSON.parse(parametersString)
+      return parametersString ? JSON.parse(parametersString) : {}
     } catch (e) {
       return {}
     }
@@ -157,16 +218,15 @@ const WomensHealthPackagesGrid = () => {
   // Get all women's health categories
   const womenCategories = [
     "All",
-    ...categories.filter((category) => womenCategoryIds.includes(category.id)).map((category) => category.name),
+    ...categories.map((category) => category.name),
   ]
 
   // Get all products from women's health categories
-  const womenProducts = categories
-    .filter((category) => womenCategoryIds.includes(category.id))
-    .flatMap((category) => category.products)
+  const womenProducts = categories.flatMap((category) => category.products || [])
 
   // Filter products based on search term and selected category
   const filteredProducts = womenProducts.filter((product) => {
+    if (!product) return false
     const productName = product.name.toLowerCase()
     const searchTermLower = searchTerm.toLowerCase()
     const tags = parseTags(product.tags)
@@ -215,7 +275,7 @@ const WomensHealthPackagesGrid = () => {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 bg-gray-50 flex justify-center items-center h-64">
+      <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     )
