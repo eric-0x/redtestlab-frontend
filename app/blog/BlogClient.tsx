@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Calendar, User, ArrowLeft, Clock, Share2, BookOpen, Tag } from "lucide-react"
-import { isNumericId, generateSlug } from "./utils"
-import Head from "next/head"
+import { isNumericId, generateSlug, calculateReadingTime } from "./utils"
 
 export interface Blog {
   id?: number
@@ -55,7 +54,6 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
         const blogData = await fetchBlogById(slugOrId)
         if (blogData) {
           setBlog(blogData)
-          updatePageMetadata(blogData)
         } else {
           setError("Blog not found")
         }
@@ -64,7 +62,6 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
         const blogData = await findBlogBySlug(slugOrId)
         if (blogData) {
           setBlog(blogData)
-          updatePageMetadata(blogData)
         } else {
           setError("Blog not found")
         }
@@ -115,24 +112,6 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
     }
   }
 
-  // Update page metadata dynamically
-  const updatePageMetadata = (blog: Blog) => {
-    if (typeof document !== 'undefined') {
-      document.title = blog.metaTitle || blog.title
-      
-      // Update meta description
-      const metaDescription = document.querySelector('meta[name="description"]')
-      if (metaDescription) {
-        metaDescription.setAttribute('content', blog.description)
-      } else {
-        const meta = document.createElement('meta')
-        meta.name = 'description'
-        meta.content = blog.description
-        document.head.appendChild(meta)
-      }
-    }
-  }
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -142,10 +121,7 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
   }
 
   const getReadingTime = (content: string) => {
-    const wordsPerMinute = 200
-    const words = content.split(" ").length
-    const minutes = Math.ceil(words / wordsPerMinute)
-    return `${minutes} min read`
+    return calculateReadingTime(content)
   }
 
   const handleShare = async () => {
@@ -229,14 +205,7 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
   }
 
   return (
-    <>
-      {/* SEO meta keywords tag */}
-      {blog && blog.keywords && (
-        <Head>
-          <meta name="keywords" content={blog.keywords} />
-        </Head>
-      )}
-      <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white">
       {/* Navigation Header */}
       <div className="bg-white border-b sticky top-0 z-10 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -375,6 +344,5 @@ export default function BlogClient({ blogSlugOrId }: BlogClientProps) {
         </footer>
       </article>
     </div>
-    </>
   )
 }
