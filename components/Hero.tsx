@@ -123,6 +123,11 @@ const HealthTestSearch = () => {
     router.push(`/search-results?query=${encodeURIComponent(text)}`) // Changed from navigate()
   }
 
+  const handleSearch = (query: string) => {
+    // Navigate to search results with the search query
+    router.push(`/search-results?query=${encodeURIComponent(query)}`)
+  }
+
   const startVoiceRecording = () => {
     if (recognitionRef.current) {
       recognitionRef.current.start()
@@ -185,18 +190,30 @@ const HealthTestSearch = () => {
               />
               <input
                 type="text"
-                placeholder="Search Tests"
+                placeholder="Search Tests, Packages, Doctors, Blogs..."
                 className="w-full py-3 sm:py-4 px-2 sm:px-4 text-gray-700 focus:outline-none text-base sm:text-lg"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    handleSearch(searchQuery.trim())
+                  }
+                }}
               />
               <button
                 className="bg-gray-100 p-2 sm:p-3 rounded-full mr-2 hover:bg-red-50 transition-colors duration-200"
                 onClick={startVoiceRecording}
               >
                 <Mic className="text-red-500" size={18} />
+              </button>
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full mr-2 transition-colors duration-200 font-medium"
+                onClick={() => searchQuery.trim() && handleSearch(searchQuery.trim())}
+                disabled={!searchQuery.trim()}
+              >
+                Search
               </button>
             </div>
           </div>
