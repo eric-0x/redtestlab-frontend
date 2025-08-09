@@ -11,11 +11,13 @@ interface Category {
   id: number
   name: string
   badge: string | null
+  type?: string
 }
 
 interface FormData {
   name: string
   badge: string
+  type: string
 }
 
 interface Notification {
@@ -37,6 +39,7 @@ export default function CategoryManagement() {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     badge: "",
+    type: "ALL",
   })
 
   useEffect(() => {
@@ -58,7 +61,7 @@ export default function CategoryManagement() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: value })
   }
@@ -67,6 +70,7 @@ export default function CategoryManagement() {
     setFormData({
       name: "",
       badge: "",
+      type: "ALL",
     })
     setEditingCategory(null)
   }
@@ -75,6 +79,7 @@ export default function CategoryManagement() {
     setFormData({
       name: category.name,
       badge: category.badge || "",
+      type: category.type || "ALL",
     })
     setEditingCategory(category.id)
     setShowForm(true)
@@ -102,6 +107,7 @@ export default function CategoryManagement() {
       const categoryData = {
         name: formData.name.trim(),
         badge: formData.badge.trim() || null,
+        type: formData.type,
       }
 
       let url = `${API_URL}/category`
@@ -293,6 +299,20 @@ export default function CategoryManagement() {
                       placeholder="e.g., Rising Cases, New, Popular"
                     />
                     <p className="text-xs text-gray-500 mt-1">Optional badge to highlight this category</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Type*</label>
+                    <select
+                      name="type"
+                      value={formData.type}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    >
+                      <option value="ALL">ALL</option>
+                      <option value="WOMEN">WOMEN</option>
+                    </select>
+                    <p className="text-xs text-gray-500 mt-1">Select the type of category</p>
                   </div>
                 </div>
               </div>

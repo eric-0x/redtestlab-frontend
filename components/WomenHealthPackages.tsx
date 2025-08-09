@@ -115,6 +115,7 @@ interface Product {
 interface Category {
   id: number
   name: string
+  type: string
   products?: Product[]
 }
 
@@ -140,47 +141,39 @@ const WomensHealthPackagesGrid = () => {
   const womenCategoryIds = [1] // Category IDs for women-related categories
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchProducts = async () => {
       try {
+        // Fetch all packages with their category from the correct endpoint
         const response = await fetch("https://redtestlab.com/api/product/type/packages")
         if (!response.ok) {
-          throw new Error("Failed to fetch packages")
+          throw new Error("Failed to fetch products")
         }
         const data = await response.json()
-        
-        // Filter for women-related category IDs
-        const womenProducts = data.filter((product: Product) => womenCategoryIds.includes(product.categoryId))
-        
-        // Group products by category
-        const categoriesWithProducts: Category[] = []
-        womenCategoryIds.forEach(categoryId => {
-          const categoryProducts = womenProducts.filter((product: Product) => product.categoryId === categoryId)
-          if (categoryProducts.length > 0) {
-            const categoryNames: { [key: number]: string } = {
-              27: "Women's Wellness",
-              28: "Fertility Tests", 
-              33: "Pregnancy Care",
-              32: "Hormone Tests",
-              31: "PCOS/PCOD",
-              29: "Thyroid Tests",
-              30: "Vitamin Tests"
+        // Filter products whose category.type === 'WOMEN'
+        const womenProducts: Product[] = data.filter((product: Product) => product.category && product.category.type === "WOMEN")
+        // Group by category
+        const categoryMap: { [key: number]: Category } = {}
+        womenProducts.forEach((product) => {
+          if (product.category) {
+            if (!categoryMap[product.category.id]) {
+              categoryMap[product.category.id] = {
+                id: product.category.id,
+                name: product.category.name,
+                type: product.category.type,
+                products: [],
+              }
             }
-            categoriesWithProducts.push({
-              id: categoryId,
-              name: categoryNames[categoryId] || `Category ${categoryId}`,
-              products: categoryProducts
-            })
+            categoryMap[product.category.id].products!.push(product)
           }
         })
-        
-        setCategories(categoriesWithProducts)
+        setCategories(Object.values(categoryMap))
       } catch (err) {
-        console.error("Error fetching packages:", err)
+        console.error("Error fetching products:", err)
       } finally {
         setLoading(false)
       }
     }
-    fetchCategories()
+    fetchProducts()
   }, [])
 
   // Load Razorpay script
@@ -337,7 +330,6 @@ const WomensHealthPackagesGrid = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
         {currentPackages.map((product) => {
           const tags = parseTags(product.tags)
-          const parameters = parseParameters(product?.parameters)
           const discountPercentage = Math.round(
             ((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100,
           )
@@ -345,69 +337,87 @@ const WomensHealthPackagesGrid = () => {
           return (
             <div
               key={product.id}
-              className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-[360px]"
+              className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full"
             >
               <div className="h-full flex flex-col">
-                <div className="p-4 border-b border-blue-50 bg-gradient-to-r from-blue-50 to-white">
+                <div className="p-4 border-b border-blue-50">
                   <div className="flex justify-between items-start">
-                    <h3 className="text-lg font-bold text-blue-700 pr-8">{product.name}</h3>
-                    <button className="text-blue-600 hover:text-blue-800 transition-colors duration-200">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </button>
+                    <h3 className="text-lg font-bold text-blue-800 pr-8">{product.name}</h3>
+                    <span className="bg-blue-50 px-2 py-1 rounded-full text-xs text-blue-700">
+                      {categoryName}
+                    </span>
                   </div>
                   <div className="mt-3 flex text-sm text-gray-600 space-x-4">
                     <div>
                       Reports in <span className="font-semibold text-blue-700">{product.reportTime} hours</span>
                     </div>
-                    <div className="border-l border-blue-200 pl-4">
-                      Parameters <span className="font-semibold text-blue-700">{parameters?.Parameters || "0"}</span>
-                    </div>
                   </div>
                 </div>
-                <div className="px-4 py-3 flex-1">
+                <div className="px-4 py-3 flex-1 overflow-y-auto">
+                  {/* Display included tests */}
+                  {product.ProductPackageLink_ProductPackageLink_packageIdToProduct &&
+                    product.ProductPackageLink_ProductPackageLink_packageIdToProduct.length > 0 && (
+                      <div className="mb-3">
+                        <h4 className="text-sm font-medium text-gray-700 mb-2">Tests Included:</h4>
+                        <div className="space-y-2">
+                          {product.ProductPackageLink_ProductPackageLink_packageIdToProduct.map((link) => {
+                            const test = link.Product_ProductPackageLink_testIdToProduct
+                            return (
+                              <div key={link.id} className="bg-blue-50 p-2 rounded-lg border border-blue-100">
+                                <div className="font-medium text-blue-800 text-sm">
+                                  {test?.name}
+                                </div>
+                                {test?.Parameter && test.Parameter.length > 0 && (
+                                  <div className="mt-1">
+                                    <div className="text-xs text-gray-600 mb-1">Parameters:</div>
+                                    <div className="flex flex-wrap gap-1">
+                                      {test.Parameter.map((param) => (
+                                        <span
+                                          key={param.id}
+                                          className="bg-white px-2 py-0.5 rounded text-xs text-gray-700 border"
+                                        >
+                                          {param.name}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  {/* Display tags */}
                   {tags.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="bg-blue-50 px-3 py-1 rounded-full text-sm text-blue-700 border border-blue-100"
-                        >
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {tags.slice(0, 3).map((tag, index) => (
+                        <span key={index} className="bg-blue-50 px-3 py-1 rounded-full text-xs text-blue-700">
                           {tag}
                         </span>
                       ))}
-                      <span className="bg-pink-50 px-3 py-1 rounded-full text-sm text-pink-700 border border-pink-100">
-                        {categoryName}
-                      </span>
+                      {tags.length > 3 && (
+                        <span className="bg-gray-50 px-3 py-1 rounded-full text-xs text-gray-600">
+                          +{tags.length - 3} more
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <div className="text-sm text-gray-500 italic">
-                      Complete health package with comprehensive testing
-                    </div>
+                  ) : null}
+                  {product.description && (
+                    <div className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</div>
                   )}
                 </div>
-                <div className="p-4 mt-auto border-t border-blue-100 bg-gradient-to-r from-white to-blue-50 flex items-center justify-between">
+                <div className="p-4 mt-auto border-t border-blue-50 flex flex-row items-center justify-between gap-[68px] md:gap-3">
                   <div>
                     <div className="flex items-baseline">
                       <span className="text-xl font-bold text-blue-800">₹{product.discountedPrice}</span>
                       <span className="ml-2 text-sm line-through text-gray-500">₹{product.actualPrice}</span>
                     </div>
                     <div className="text-xs text-gray-600">
-                      <span className="text-green-600 font-semibold">{discountPercentage}% off</span> for a limited
-                      period
+                      <span className="text-green-600 font-semibold">{discountPercentage}% off</span> Hurry!
                     </div>
                   </div>
-                  <div className="flex space-x-2">
+                  <div className="flex space-x-2 w-full sm:w-auto">
                     <button
                       className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
                       onClick={() => handleAddToCart(product.id)}
@@ -420,19 +430,6 @@ const WomensHealthPackagesGrid = () => {
                           fill="none"
                           viewBox="0 0 24 24"
                         >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
                         </svg>
                       ) : (
                         "Book Now"
