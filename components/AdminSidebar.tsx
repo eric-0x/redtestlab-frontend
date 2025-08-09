@@ -136,6 +136,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
       subLinks: [
         { title: "List Package", icon: <Package size={18} className="text-blue-600" />, path: "/admin/package/new" },
         { title: "List Test", icon: <Package size={18} className="text-blue-600" />, path: "/admin/package/test" },
+        { title: "Create Parameter", icon: <Package size={18} className="text-blue-600" />, path: "/admin/package/parameter" },
         {
           title: "Create Category",
           icon: <Package size={18} className="text-blue-600" />,

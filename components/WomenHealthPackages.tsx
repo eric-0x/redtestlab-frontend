@@ -137,7 +137,7 @@ const WomensHealthPackagesGrid = () => {
   const { addToCart, loading: cartLoading } = useCart()
 
   // Women-related category IDs
-  const womenCategoryIds = [27,28 , 33, 32, 31, 29, 30] // Category IDs for women-related categories
+  const womenCategoryIds = [1] // Category IDs for women-related categories
 
   useEffect(() => {
     const fetchCategories = async () => {
