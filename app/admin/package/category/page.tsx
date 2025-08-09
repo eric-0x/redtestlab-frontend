@@ -12,12 +12,16 @@ interface Category {
   name: string
   badge: string | null
   type?: string
+  imageUrl?: string
+  color?: string
 }
 
 interface FormData {
   name: string
   badge: string
   type: string
+  imageUrl: string
+  color: string
 }
 
 interface Notification {
@@ -40,7 +44,28 @@ export default function CategoryManagement() {
     name: "",
     badge: "",
     type: "ALL",
+    imageUrl: "",
+    color: "#000000",
   })
+
+  // Cloudinary upload
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const form = new FormData()
+    form.append("file", file)
+    form.append("upload_preset", "E-Rickshaw") // Change to your Cloudinary preset
+    try {
+      const res = await fetch("https://api.cloudinary.com/v1_1/dm8jxispy/image/upload", {
+        method: "POST",
+        body: form,
+      })
+      const data = await res.json()
+      setFormData((prev) => ({ ...prev, imageUrl: data.secure_url }))
+    } catch (err) {
+      showNotification("Image upload failed", "error")
+    }
+  }
 
   useEffect(() => {
     fetchCategories()
@@ -71,6 +96,8 @@ export default function CategoryManagement() {
       name: "",
       badge: "",
       type: "ALL",
+      imageUrl: "",
+      color: "#000000",
     })
     setEditingCategory(null)
   }
@@ -80,6 +107,8 @@ export default function CategoryManagement() {
       name: category.name,
       badge: category.badge || "",
       type: category.type || "ALL",
+      imageUrl: category.imageUrl || "",
+      color: category.color || "#000000",
     })
     setEditingCategory(category.id)
     setShowForm(true)
@@ -108,6 +137,8 @@ export default function CategoryManagement() {
         name: formData.name.trim(),
         badge: formData.badge.trim() || null,
         type: formData.type,
+        imageUrl: formData.imageUrl,
+        color: formData.color,
       }
 
       let url = `${API_URL}/category`
@@ -302,6 +333,44 @@ export default function CategoryManagement() {
                   </div>
 
                   <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                    />
+                    {formData.imageUrl && (
+                      <img src={formData.imageUrl} alt="Category" className="mt-2 h-20 rounded-lg border object-cover" />
+                    )}
+                    <p className="text-xs text-gray-500 mt-1">Upload category image (Cloudinary)</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Color*</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        name="color"
+                        value={formData.color}
+                        onChange={handleInputChange}
+                        className="w-10 h-10 p-0 border rounded-lg"
+                        style={{ background: formData.color }}
+                      />
+                      <input
+                        type="text"
+                        name="color"
+                        value={formData.color}
+                        onChange={handleInputChange}
+                        className="w-32 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                        placeholder="#000000"
+                        maxLength={7}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Pick a color or enter a hex code (e.g., #ff0000)</p>
+                  </div>
+
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Type*</label>
                     <select
                       name="type"
@@ -372,12 +441,18 @@ export default function CategoryManagement() {
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div className="space-y-2 flex-1">
                       <div className="flex items-center gap-3 flex-wrap">
+                        {category.imageUrl && (
+                          <img src={category.imageUrl} alt="Category" className="h-10 w-10 rounded-lg object-cover border" />
+                        )}
                         <h3 className="text-lg sm:text-xl font-semibold text-gray-900">{category.name}</h3>
                         {category.badge && (
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800 border border-orange-200">
                             <Badge className="h-3 w-3" />
                             {category.badge}
                           </span>
+                        )}
+                        {category.color && (
+                          <span className="inline-block w-6 h-6 rounded-full border ml-2" style={{ background: category.color }} title={category.color}></span>
                         )}
                       </div>
                       <div className="text-sm text-gray-500">Category ID: {category.id}</div>
