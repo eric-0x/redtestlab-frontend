@@ -557,15 +557,15 @@ export default function PackageManagement() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEditClick(product)}
-                        className="text-blue-600 hover:text-blue-800 bg-blue-50 p-2 rounded-lg"
+                        className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-blue-50 hover:bg-gray-50"
                       >
-                        <Edit className="h-5 w-5" />
+                        <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-800 bg-red-50 p-2 rounded-lg"
+                          className="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100"
                       >
-                        <Trash2 className="h-5 w-5" />
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </div>
                   </div>

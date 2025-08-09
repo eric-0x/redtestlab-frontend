@@ -10,6 +10,8 @@ interface Category {
   name: string
   badge?: string | null
   products: Product[]
+  imageUrl?: string
+  color?: string
 }
 
 interface Product {
@@ -33,6 +35,8 @@ interface HealthPackage {
   shadowColor: string
   badge?: string | null
   description?: string
+  color?: string
+  customGradient?: string | null
 }
 
 const iconMap = {
@@ -109,14 +113,29 @@ const HealthCheckupPackages: React.FC = () => {
           const defaultIconColor = "text-blue-600"
           const defaultShadowColor = "rgba(59, 130, 246, 0.3)"
 
+          // If color is present and not #000000, use it for a nice gradient, else use default
+          let gradient = gradientMap[category.name as keyof typeof gradientMap] || defaultGradient
+          let shadowColor = shadowColorMap[category.name as keyof typeof shadowColorMap] || defaultShadowColor
+          let customGradient = null
+          if (category.color && category.color !== "#000000") {
+            // Create a soft gradient using the color
+            const hexColor = category.color
+            customGradient = `linear-gradient(135deg, ${hexColor}20 0%, ${hexColor}40 50%, ${hexColor}20 100%)`
+            shadowColor = category.color + "33" // 20% opacity
+          }
+
           return {
             id: category.id,
             name: category.name,
-            icon: iconMap[category.name as keyof typeof iconMap] || defaultIcon,
-            gradient: gradientMap[category.name as keyof typeof gradientMap] || defaultGradient,
+            icon: category.imageUrl
+              ? <img src={category.imageUrl} alt={category.name} className="w-full h-full object-cover rounded-full" />
+              : (iconMap[category.name as keyof typeof iconMap] || defaultIcon),
+            gradient,
             iconColor: iconColorMap[category.name as keyof typeof iconColorMap] || defaultIconColor,
-            shadowColor: shadowColorMap[category.name as keyof typeof shadowColorMap] || defaultShadowColor,
+            shadowColor,
             badge: category.badge,
+            color: category.color,
+            customGradient,
             // description: `${category.products.filter((p) => p.productType === "PACKAGE").length} packages available`,
           }
         })
@@ -220,12 +239,13 @@ const HealthCheckupPackages: React.FC = () => {
               >
                 <div
                   className={`
-                    relative overflow-hidden rounded-2xl bg-gradient-to-br ${pkg.gradient}
+                    relative overflow-hidden rounded-2xl ${!pkg.customGradient ? `bg-gradient-to-br ${pkg.gradient}` : ''}
                     pt-7 w-40 sm:w-44 h-36 sm:h-40
                     flex flex-col items-center justify-center
                     transition-all duration-500 ease-out
                   `}
                   style={{
+                    background: pkg.customGradient || undefined,
                     boxShadow:
                       activePackage === pkg.id
                         ? `0 10px 25px -5px ${pkg.shadowColor}, 0 8px 10px -6px ${pkg.shadowColor}`
@@ -256,10 +276,9 @@ const HealthCheckupPackages: React.FC = () => {
 
                   <div
                     className={`
-                      relative z-10 rounded-full p-4 mb-3
+                      relative z-10 rounded-full p-3 mb-3
                       flex items-center justify-center
-                      bg-white/90 backdrop-blur-sm ${pkg.iconColor}
-                      transition-all duration-500 ease-out
+                      bg-white transition-all duration-500 ease-out
                     `}
                     style={{
                       boxShadow:
@@ -274,7 +293,9 @@ const HealthCheckupPackages: React.FC = () => {
                             : "scale(1) rotate(0)",
                     }}
                   >
-                    <div className="w-7 h-7">{pkg.icon}</div>
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center">
+                      {pkg.icon}
+                    </div>
                   </div>
 
                   <p
