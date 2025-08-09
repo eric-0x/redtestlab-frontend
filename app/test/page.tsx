@@ -198,7 +198,7 @@ const HealthTestPackagesCarousel = () => {
       try {
         setLoading(true)
         // Fetch all products from new API endpoint
-        const productsResponse = await fetch("http://localhost:5000/api/product/type/tests")
+        const productsResponse = await fetch("https://redtestlab.com/api/product/type/tests")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
