@@ -5,7 +5,7 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react"
 
-const API_URL = "https://redtestlab.com/api"
+const API_URL = "http://localhost:5000/api"
 
 // Define types for our data
 interface Product {

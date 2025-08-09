@@ -99,16 +99,29 @@ interface Parameter {
 interface Product {
   id: number
   name: string
-  reportTime: string
+  reportTime: string | null
   testCount?: number
   tags: string
   actualPrice: number
-  discountedPrice: number
-  categoryId: number
+  discountedPrice: number | null
+  categoryId: number | null
   description?: string
-  category?: Category
+  category?: Category | null
   productType: string
   Parameter: Parameter[]
+  childLinks?: Array<{
+    id: number
+    parentTestId: number
+    childTestId: number
+    childTest?: {
+      id: number
+      name: string | null
+      actualPrice: number
+      discountedPrice: number | null
+      productType: string
+      Parameter: Parameter[]
+    }
+  }>
 }
 
 // Category interface
@@ -185,7 +198,7 @@ const HealthTestPackagesCarousel = () => {
       try {
         setLoading(true)
         // Fetch all products from new API endpoint
-        const productsResponse = await fetch("https://redtestlab.com/api/product/type/tests")
+        const productsResponse = await fetch("http://localhost:5000/api/product/type/tests")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
@@ -511,9 +524,9 @@ const HealthTestPackagesCarousel = () => {
               {testProducts.map((product) => {
                 const tags = parseTags(product.tags)
                 const parameterNames = getParameterNames(product.Parameter || [])
-                const discountPercentage = Math.round(
-                  ((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100,
-                )
+                const discountPercentage = product.discountedPrice && product.actualPrice
+                  ? Math.round(((product.actualPrice - product.discountedPrice) / product.actualPrice) * 100)
+                  : 0
 
                 return (
                   <div
@@ -525,19 +538,13 @@ const HealthTestPackagesCarousel = () => {
                         <div className="flex justify-between items-start">
                           <h3 className="text-lg font-bold text-blue-800 pr-8">{product.name}</h3>
                           <span className="bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700">
-                            {product.category?.name || getCategoryName(product.categoryId)}
+                            {product.category?.name || (product.categoryId != null ? getCategoryName(product.categoryId) : "No Category")}
                           </span>
                         </div>
                         <div className="mt-3 flex text-sm text-gray-600 space-x-4">
                           <div>
                             Reports in <span className="font-semibold text-blue-700">{product.reportTime} hours</span>
                           </div>
-                          {product.testCount && product.testCount > 0 && (
-                            <div className="border-l border-blue-100 pl-4">
-                              Tests <span className="font-semibold text-blue-700">{product.testCount}</span>
-                            </div>
-                          )}
-                   
                         </div>
                       </div>
                       <div className="px-4 py-3 flex-1 overflow-y-auto">
@@ -576,51 +583,85 @@ const HealthTestPackagesCarousel = () => {
                             </div>
                           </div>
                         )}
+
+                        {/* Show child tests if present */}
+                        {product.childLinks && product.childLinks.length > 0 && (
+                          <div className="mt-4">
+                          
+                            <div className="space-y-2">
+                              {product.childLinks.map((link: any, idx: number) => (
+                                <div key={link.id || idx} className="bg-gray-50 rounded p-2 border border-gray-100">
+                                  <div className="font-semibold text-blue-700 text-xs mb-1">
+                                    {link.childTest?.name || 'Parameter'}
+                                  </div>
+                                  {link.childTest?.Parameter && link.childTest.Parameter.length > 0 && (
+                                    <div className="flex flex-wrap gap-2 text-xs">
+                                      {link.childTest.Parameter.map((param: any) => (
+                                        <span key={param.id} className="bg-green-100 px-2 py-1 rounded text-green-800">
+                                          {param.name}
+                                          {param.unit && (
+                                            <span className="ml-1 text-gray-500">({param.unit})</span>
+                                          )}
+                                          {param.referenceRange && (
+                                            <span className="ml-1 text-gray-400">[{param.referenceRange}]</span>
+                                          )}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <div className="p-4 mt-auto border-t border-blue-50 flex flex-row flex-wrap items-center justify-between gap-3">
                         <div>
                           <div className="flex items-baseline">
-                            <span className="text-xl font-bold text-blue-800">₹{product.discountedPrice}</span>
-                            <span className="ml-2 text-sm line-through text-gray-500">₹{product.actualPrice}</span>
-                          </div>
-                          <div className="text-xs text-gray-600">
-                            <span className="text-green-600 font-semibold">{discountPercentage}% Off</span> Hurry!
-                            
-                          </div>
-                        </div>
-                          <button
-                            className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
-                            onClick={() => handleAddToCart(product.id)}
-                            disabled={addingProductId === product.id || cartLoading}
-                          >
-                            {addingProductId === product.id ? (
-                              <svg
-                                className="animate-spin h-5 w-5 text-white"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                              >
-                                <circle
-                                  className="opacity-25"
-                                  cx="12"
-                                  cy="12"
-                                  r="10"
-                                  stroke="currentColor"
-                                  strokeWidth="4"
-                                ></circle>
-                                <path
-                                  className="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                ></path>
-                              </svg>
-                            ) : (
-                              "Book Now"
+                            <span className="text-xl font-bold text-blue-800">₹{product.discountedPrice ?? product.actualPrice}</span>
+                            {product.discountedPrice && (
+                              <span className="ml-2 text-sm line-through text-gray-500">₹{product.actualPrice}</span>
                             )}
-                          </button>
+                          </div>
+                          {product.discountedPrice && (
+                            <div className="text-xs text-gray-600">
+                              <span className="text-green-600 font-semibold">{discountPercentage}% Off</span> Hurry!
+                            </div>
+                          )}
                         </div>
+                        <button
+                          className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
+                          onClick={() => handleAddToCart(product.id)}
+                          disabled={addingProductId === product.id || cartLoading}
+                        >
+                          {addingProductId === product.id ? (
+                            <svg
+                              className="animate-spin h-5 w-5 text-white"
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <circle
+                                className="opacity-25"
+                                cx="12"
+                                cy="12"
+                                r="10"
+                                stroke="currentColor"
+                                strokeWidth="4"
+                              ></circle>
+                              <path
+                                className="opacity-75"
+                                fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                              ></path>
+                            </svg>
+                          ) : (
+                            "Book Now"
+                          )}
+                        </button>
                       </div>
                     </div>
+                  </div>
                 )
               })}
             </div>
