@@ -35,8 +35,8 @@ export const generateMetadata = async (): Promise<Metadata> => {
   } catch (error) {
     console.error("Error fetching metadata:", error);
     return {
-      title: "RedTest Lab - Health Test Search",
-      description: "Find and book blood tests and health checkups online with RedTest Lab",
+      title: "RedTest Lab Bihar—Online Test Booking & Home Sample Collection",
+      description: "Book blood tests, scans, and health packages online with RedTest Lab Bihar. Fast results, verified labs, and home collection services are available.",
       keywords: "blood test, health checkup, medical tests, lab tests",
       authors: [{ name: "RedTest Lab" }],
       viewport: "width=device-width, initial-scale=1",
