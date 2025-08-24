@@ -1,2 +1,9 @@
+# *
 User-agent: *
-Disallow:
+Allow: /
+
+# Host
+Host: https://redtestlab.com
+
+# Sitemaps
+Sitemap: https://redtestlab.com/sitemap.xml
