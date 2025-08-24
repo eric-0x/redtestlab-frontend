@@ -3,7 +3,11 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react"
+import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic, List, ListOrdered } from "lucide-react"
+import { useEditor, EditorContent } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import Image from "@tiptap/extension-image"
+import Link from "@tiptap/extension-link"
 
 const API_URL = "https://redtestlab.com/api"
 
@@ -18,6 +22,8 @@ interface Product {
   categoryId: number
   category?: Category
   productType?: string
+  overview?: string
+  faq?: FAQ[]
   ProductPackageLink_ProductPackageLink_packageIdToProduct?: Array<{
     id: number
     packageId: number
@@ -31,6 +37,11 @@ interface Category {
   name: string
 }
 
+interface FAQ {
+  question: string
+  answer: string
+}
+
 interface FormData {
   name: string
   reportTime: number
@@ -39,6 +50,8 @@ interface FormData {
   discountedPrice: number
   categoryId: number | string
   testIds: number[]
+  overview: string
+  faq: FAQ[]
 }
 
 interface Parameter {
@@ -73,7 +86,62 @@ export default function PackageManagement() {
     discountedPrice: 0,
     categoryId: "",
     testIds: [],
+    overview: "",
+    faq: [],
   })
+
+  const [mounted, setMounted] = useState(false)
+
+  // TipTap Editor for overview
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto rounded-lg mx-auto my-4",
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-600 hover:text-blue-800 underline",
+        },
+      }),
+    ],
+    content: formData.overview,
+    onUpdate: ({ editor }) => {
+      setFormData((prev) => ({
+        ...prev,
+        overview: editor.getHTML(),
+      }));
+    },
+    editorProps: {
+      attributes: {
+        class: "prose prose-sm focus:outline-none max-w-none min-h-[120px] p-3 border rounded-lg",
+      },
+    },
+    immediatelyRender: false,
+  })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Update editor content when form data changes
+  useEffect(() => {
+    if (editor && mounted && editor.getHTML() !== formData.overview) {
+      editor.commands.setContent(formData.overview)
+    }
+  }, [formData.overview, editor, mounted])
 
   useEffect(() => {
     fetchProducts()
@@ -136,6 +204,28 @@ export default function PackageManagement() {
     })
   }
 
+  // FAQ management functions
+  const addFAQ = () => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: [...prev.faq, { question: "", answer: "" }],
+    }))
+  }
+
+  const updateFAQ = (index: number, field: "question" | "answer", value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: prev.faq.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+
+  const removeFAQ = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: prev.faq.filter((_, i) => i !== index),
+    }))
+  }
+
 // Removed handleParameterChange
 
 // Removed addParameter
@@ -151,8 +241,13 @@ export default function PackageManagement() {
       discountedPrice: 0,
       categoryId: "",
       testIds: [],
+      overview: "",
+      faq: [],
     })
     setEditingProduct(null)
+    if (editor) {
+      editor.commands.setContent("")
+    }
   }
 
   const handleEditClick = (product: any) => {
@@ -166,9 +261,14 @@ export default function PackageManagement() {
       discountedPrice: product.discountedPrice,
       categoryId: product.categoryId,
       testIds,
+      overview: product.overview || "",
+      faq: product.faq || [],
     })
     setEditingProduct(product.id)
     setShowForm(true)
+    if (editor) {
+      editor.commands.setContent(product.overview || "")
+    }
   }
 
   const validateForm = () => {
@@ -451,6 +551,120 @@ export default function PackageManagement() {
                     </div>
                   </div>
 
+                  {/* Overview Section with TipTap Editor */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Overview</label>
+                    <div className="border rounded-lg">
+                      {/* Editor Toolbar */}
+                      {mounted && editor && (
+                        <div className="border-b p-2 flex gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("bold") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <Bold className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("italic") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <Italic className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleBulletList().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("bulletList") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <List className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("orderedList") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <ListOrdered className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                      {/* Editor Content */}
+                      <div className="min-h-[120px]">
+                        {mounted && editor ? (
+                          <EditorContent editor={editor} />
+                        ) : (
+                          <div className="p-3 text-gray-500">Loading editor...</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FAQ Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">FAQ</label>
+                      <button
+                        type="button"
+                        onClick={addFAQ}
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add FAQ
+                      </button>
+                    </div>
+                    <div className="space-y-4 max-h-60 overflow-y-auto">
+                      {formData.faq.map((faqItem, index) => (
+                        <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Question</label>
+                              <input
+                                type="text"
+                                value={faqItem.question}
+                                onChange={(e) => updateFAQ(index, "question", e.target.value)}
+                                className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter question"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Answer</label>
+                              <textarea
+                                value={faqItem.answer}
+                                onChange={(e) => updateFAQ(index, "answer", e.target.value)}
+                                className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter answer"
+                                rows={2}
+                              />
+                            </div>
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => removeFAQ(index)}
+                                className="flex items-center gap-1 px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                              >
+                                <X className="h-4 w-4" />
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {formData.faq.length === 0 && (
+                        <div className="text-center text-gray-500 py-4">
+                          No FAQ added yet. Click "Add FAQ" to get started.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Test selection with search */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select Tests</label>
@@ -602,6 +816,36 @@ export default function PackageManagement() {
                           </div>
                         </div>
                       </div>
+                      
+                      {/* Overview Section */}
+                      {product.overview && (
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">Overview</h4>
+                          <div 
+                            className="prose prose-sm max-w-none text-gray-600"
+                            dangerouslySetInnerHTML={{ __html: product.overview }}
+                          />
+                        </div>
+                      )}
+                      
+                      {/* FAQ Section */}
+                      {product.faq && Array.isArray(product.faq) && product.faq.length > 0 && (
+                        <div>
+                          <h4 className="font-medium text-gray-700 mb-2">FAQ</h4>
+                          <div className="space-y-3">
+                            {product.faq.map((faqItem: any, index: number) => (
+                              <div key={index} className="bg-white p-3 rounded border">
+                                <div className="font-medium text-gray-700 text-sm mb-1">
+                                  Q: {faqItem.question}
+                                </div>
+                                <div className="text-gray-600 text-sm">
+                                  A: {faqItem.answer}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

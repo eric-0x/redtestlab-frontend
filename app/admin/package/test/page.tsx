@@ -1,9 +1,14 @@
 "use client"
 
-import type React from "react"
+import React from "react"
+import type { ChangeEvent } from "react"
 
 import { useState, useEffect } from "react"
-import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown } from "lucide-react"
+import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic, List, ListOrdered } from "lucide-react"
+import { useEditor, EditorContent } from "@tiptap/react"
+import StarterKit from "@tiptap/starter-kit"
+import Image from "@tiptap/extension-image"
+import Link from "@tiptap/extension-link"
 
 const API_URL = "https://redtestlab.com/api"
 
@@ -14,6 +19,16 @@ interface Parameter {
   unit: string
   referenceRange: string
   productId?: number
+}
+
+interface Category {
+  id: number
+  name: string
+}
+
+interface FAQ {
+  question: string
+  answer: string
 }
 
 interface Product {
@@ -29,6 +44,8 @@ interface Product {
   description?: string
   category?: Category
   productType: string
+  overview?: string
+  faq?: FAQ[]
   childLinks?: {
     childTest: Product
   }[]
@@ -57,6 +74,8 @@ interface FormData {
   description?: string
   productType: string
   parameterIds: number[]
+  overview: string
+  faq: FAQ[]
 }
 
 interface Notification {
@@ -88,7 +107,62 @@ export default function TestManagement() {
     description: "",
     productType: "TEST",
     parameterIds: [],
+    overview: "",
+    faq: [],
   })
+
+  const [mounted, setMounted] = useState(false)
+
+  // TipTap Editor for overview
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
+      Image.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto rounded-lg mx-auto my-4",
+        },
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-600 hover:text-blue-800 underline",
+        },
+      }),
+    ],
+    content: formData.overview,
+    onUpdate: ({ editor }) => {
+      setFormData((prev) => ({
+        ...prev,
+        overview: editor.getHTML(),
+      }));
+    },
+    editorProps: {
+      attributes: {
+        class: "prose prose-sm focus:outline-none max-w-none min-h-[120px] p-3 border rounded-lg",
+      },
+    },
+    immediatelyRender: false,
+  })
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Update editor content when form data changes
+  useEffect(() => {
+    if (editor && mounted && editor.getHTML() !== formData.overview) {
+      editor.commands.setContent(formData.overview)
+    }
+  }, [formData.overview, editor, mounted])
 
   useEffect(() => {
     fetchProducts()
@@ -135,7 +209,7 @@ export default function TestManagement() {
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData({ ...formData, [name]: name === "categoryId" ? Number.parseInt(value) || "" : value })
   }
@@ -156,6 +230,28 @@ export default function TestManagement() {
     })
   }
 
+  // FAQ management functions
+  const addFAQ = () => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: [...prev.faq, { question: "", answer: "" }],
+    }))
+  }
+
+  const updateFAQ = (index: number, field: "question" | "answer", value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: prev.faq.map((item, i) => (i === index ? { ...item, [field]: value } : item)),
+    }))
+  }
+
+  const removeFAQ = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      faq: prev.faq.filter((_, i) => i !== index),
+    }))
+  }
+
   const calculateTotalPrice = (parameterIds: number[]): number => {
     return parameterIds.reduce((total, id) => {
       const parameter = availableParameters.find(p => p.id === id)
@@ -174,8 +270,13 @@ export default function TestManagement() {
       description: "",
       productType: "TEST",
       parameterIds: [],
+      overview: "",
+      faq: [],
     })
     setEditingProduct(null)
+    if (editor) {
+      editor.commands.setContent("")
+    }
   }
 
   const handleEditClick = (product: Product) => {
@@ -192,9 +293,14 @@ export default function TestManagement() {
       description: product.description || "",
       productType: "TEST",
       parameterIds: parameterIds,
+      overview: product.overview || "",
+      faq: product.faq || [],
     })
     setEditingProduct(product.id)
     setShowForm(true)
+    if (editor) {
+      editor.commands.setContent(product.overview || "")
+    }
   }
 
   const validateForm = () => {
@@ -551,6 +657,120 @@ export default function TestManagement() {
                       className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600"
                     />
                   </div>
+
+                  {/* Overview Section with TipTap Editor */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Overview</label>
+                    <div className="border rounded-lg">
+                      {/* Editor Toolbar */}
+                      {mounted && editor && (
+                        <div className="border-b p-2 flex gap-2 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("bold") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <Bold className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("italic") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <Italic className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleBulletList().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("bulletList") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <List className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                            className={`p-2 rounded hover:bg-gray-100 ${
+                              editor.isActive("orderedList") ? "bg-gray-200" : ""
+                            }`}
+                          >
+                            <ListOrdered className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+                      {/* Editor Content */}
+                      <div className="min-h-[120px]">
+                        {mounted && editor ? (
+                          <EditorContent editor={editor} />
+                        ) : (
+                          <div className="p-3 text-gray-500">Loading editor...</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* FAQ Section */}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-sm font-medium text-gray-700">FAQ</label>
+                      <button
+                        type="button"
+                        onClick={addFAQ}
+                        className="flex items-center gap-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                      >
+                        <Plus className="h-4 w-4" />
+                        Add FAQ
+                      </button>
+                    </div>
+                    <div className="space-y-4 max-h-60 overflow-y-auto">
+                      {formData.faq.map((faqItem, index) => (
+                        <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Question</label>
+                              <input
+                                type="text"
+                                value={faqItem.question}
+                                onChange={(e) => updateFAQ(index, "question", e.target.value)}
+                                className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter question"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-600 mb-1">Answer</label>
+                              <textarea
+                                value={faqItem.answer}
+                                onChange={(e) => updateFAQ(index, "answer", e.target.value)}
+                                className="w-full px-3 py-2 border rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                placeholder="Enter answer"
+                                rows={2}
+                              />
+                            </div>
+                            <div className="flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() => removeFAQ(index)}
+                                className="flex items-center gap-1 px-2 py-1 text-red-600 hover:text-red-800 text-sm"
+                              >
+                                <X className="h-4 w-4" />
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {formData.faq.length === 0 && (
+                        <div className="text-center text-gray-500 py-4">
+                          No FAQ added yet. Click "Add FAQ" to get started.
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -610,58 +830,127 @@ export default function TestManagement() {
                   </tr>
                 ) : (
                   filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-500">ID: {product.id}</div>
-                          {product.tags && (
-                            <div className="text-xs text-blue-600 mt-1">
-                              {product.tags.split(',').map((tag, index) => (
-                                <span key={index} className="inline-block bg-blue-100 px-2 py-1 rounded mr-1">
-                                  {tag.trim()}
-                                </span>
-                              ))}
+                    <React.Fragment key={product.id}>
+                      <tr className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div>
+                            <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                            <div className="text-sm text-gray-500">ID: {product.id}</div>
+                            {product.tags && (
+                              <div className="text-xs text-blue-600 mt-1">
+                                {product.tags.split(',').map((tag, index) => (
+                                  <span key={index} className="inline-block bg-blue-100 px-2 py-1 rounded mr-1">
+                                    {tag.trim()}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{product.category?.name || "No Category"}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm">
+                            <div className="text-gray-500 line-through">₹{product.actualPrice}</div>
+                            <div className="font-medium text-green-600">₹{product.discountedPrice}</div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="space-y-1">
+                            {formatParameters(product.childLinks)}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm text-gray-900">{product.reportTime} hours</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex justify-end space-x-2">
+                            <button
+                              onClick={() => toggleExpanded(product.id)}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-gray-50 hover:bg-gray-100"
+                            >
+                              <ChevronDown className={`h-4 w-4 mr-1 transform transition-transform ${expandedId === product.id ? "rotate-180" : ""}`} />
+                              Details
+                            </button>
+                            <button
+                              onClick={() => handleEditClick(product)}
+                              className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-blue-50 hover:bg-gray-50"
+                            >
+                              <Edit className="h-4 w-4 mr-1" />
+                            
+                            </button>
+                            <button
+                              onClick={() => handleDelete(product.id)}
+                              className="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100"
+                            >
+                              <Trash2 className="h-4 w-4 mr-1" />
+                           
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                      {/* Expanded details row */}
+                      {expandedId === product.id && (
+                        <tr>
+                          <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                            <div className="space-y-4">
+                              {/* Overview Section */}
+                              {product.overview && (
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Overview</h4>
+                                  <div 
+                                    className="prose prose-sm max-w-none text-gray-600"
+                                    dangerouslySetInnerHTML={{ __html: product.overview }}
+                                  />
+                                </div>
+                              )}
+                              
+                              {/* FAQ Section */}
+                              {product.faq && Array.isArray(product.faq) && product.faq.length > 0 && (
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">FAQ</h4>
+                                  <div className="space-y-3">
+                                    {product.faq.map((faqItem: any, index: number) => (
+                                      <div key={index} className="bg-white p-3 rounded border">
+                                        <div className="font-medium text-gray-700 text-sm mb-1">
+                                          Q: {faqItem.question}
+                                        </div>
+                                        <div className="text-gray-600 text-sm">
+                                          A: {faqItem.answer}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Additional test details */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Test Details</h4>
+                                  <div className="space-y-1 text-sm">
+                                    <div><span className="font-medium">Report Time:</span> {product.reportTime} hours</div>
+                                    <div><span className="font-medium">Category:</span> {product.category?.name || "N/A"}</div>
+                                    {product.description && (
+                                      <div><span className="font-medium">Description:</span> {product.description}</div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="font-medium text-gray-700 mb-2">Pricing</h4>
+                                  <div className="space-y-1 text-sm">
+                                    <div><span className="font-medium">Actual Price:</span> ₹{product.actualPrice}</div>
+                                    <div><span className="font-medium">Discounted Price:</span> ₹{product.discountedPrice}</div>
+                                    <div><span className="font-medium">Savings:</span> ₹{product.actualPrice - product.discountedPrice}</div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{product.category?.name || "No Category"}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm">
-                          <div className="text-gray-500 line-through">₹{product.actualPrice}</div>
-                          <div className="font-medium text-green-600">₹{product.discountedPrice}</div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1">
-                          {formatParameters(product.childLinks)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm text-gray-900">{product.reportTime} hours</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <div className="flex justify-end space-x-2">
-                          <button
-                            onClick={() => handleEditClick(product)}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded text-gray-700 bg-blue-50 hover:bg-gray-50"
-                          >
-                            <Edit className="h-4 w-4 mr-1" />
-                          
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id)}
-                            className="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded text-red-700 bg-red-50 hover:bg-red-100"
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                         
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   ))
                 )}
               </tbody>
