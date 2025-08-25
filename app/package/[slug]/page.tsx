@@ -5,6 +5,7 @@ export async function generateStaticParams() {
   return []
 }
 
-export default function Page({ params }: { params: { slug: string } }) {
-  return <PackageDetailsClient slug={params.slug} />
+export default function Page(props: any) {
+  const slug = props?.params?.slug as string | undefined
+  return <PackageDetailsClient slug={slug} />
 }

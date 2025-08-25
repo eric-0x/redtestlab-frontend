@@ -60,7 +60,7 @@ interface PackageData {
   ProductPackageLink_ProductPackageLink_packageIdToProduct?: ProductPackageLink[];
 }
 
-export default function PackageDetailsClient({ slug }: { slug: string }) {
+export default function PackageDetailsClient({ slug }: { slug?: string }) {
   const [activeTab, setActiveTab] = useState("details")
   const [expandedSections, setExpandedSections] = useState({
     overview: true,
