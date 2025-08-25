@@ -202,9 +202,9 @@ const AllClient = () => {
     setPackages(filtered)
   }, [searchTerm, selectedCategory, allPackages])
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation() // Prevent card click event
     try {
-      router.push("/cart")
       setAddingProductId(productId)
       await addToCart(productId, 1)
       setNotification({
@@ -213,6 +213,7 @@ const AllClient = () => {
         message: "Package has been added to your cart.",
         type: "success",
       })
+      router.push("/cart")
     } catch (err) {
       setNotification({
         show: true,
@@ -223,6 +224,18 @@ const AllClient = () => {
     } finally {
       setAddingProductId(null)
     }
+  }
+
+  const handlePackageClick = (product: any) => {
+    // Generate slug from product name
+    const slug = product.name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+    
+    router.push(`/package/${slug}`);
   }
 
   const handleBuyNow = async (productId: number, productName: string) => {
@@ -492,7 +505,8 @@ const AllClient = () => {
                 return (
                   <div
                     key={product.id}
-                    className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full"
+                    className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full cursor-pointer"
+                    onClick={() => handlePackageClick(product)}
                   >
                     <div className="h-full flex flex-col">
                       <div className="p-4 border-b border-blue-50">
@@ -571,7 +585,7 @@ const AllClient = () => {
                         <div className="flex space-x-2 w-full sm:w-auto">
                           <button
                             className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
-                            onClick={() => handleAddToCart(product.id)}
+                            onClick={(e) => handleAddToCart(e, product.id)}
                             disabled={addingProductId === product.id || cartLoading}
                           >
                             {addingProductId === product.id ? (

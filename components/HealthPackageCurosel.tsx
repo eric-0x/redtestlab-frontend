@@ -152,7 +152,7 @@ const HealthPackagesCarousel = () => {
         const data = await response.json();
         
         // Filter for category ID 1 (Top Health Packages)
-        const healthPackages = data.filter((product: Product) => product.categoryId === 1);
+        const healthPackages = data.filter((product: Product) => product.categoryId === 14);
         
         // Create a mock category structure for compatibility
         const topHealthCategory: Category = {
@@ -204,9 +204,9 @@ const HealthPackagesCarousel = () => {
 
   const router = useRouter(); // Changed from useNavigate()
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation(); // Prevent card click event
     try {
-      router.push("/cart"); // Changed from navigate()
       setAddingProductId(productId);
       await addToCart(productId, 1);
       setNotification({
@@ -225,6 +225,18 @@ const HealthPackagesCarousel = () => {
     } finally {
       setAddingProductId(null);
     }
+  };
+
+  const handlePackageClick = (product: Product) => {
+    // Generate slug from product name
+    const slug = product.name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+    
+    router.push(`/package/${slug}`);
   };
   const closeNotification = () => {
     setNotification((prev) => ({ ...prev, show: false }));
@@ -325,7 +337,8 @@ const HealthPackagesCarousel = () => {
               return (
                 <div
                   key={product.id}
-                  className="min-w-[320px] max-w-[320px] bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1"
+                  className="min-w-[320px] max-w-[320px] bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 cursor-pointer"
+                  onClick={() => handlePackageClick(product)}
                 >
                   <div className="h-full flex flex-col">
                     <div className="p-4 border-b border-blue-50">
@@ -432,7 +445,7 @@ const HealthPackagesCarousel = () => {
 
                       <button
                         className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
-                        onClick={() => handleAddToCart(product.id)}
+                        onClick={(e) => handleAddToCart(e, product.id)}
                         disabled={addingProductId === product.id || cartLoading}
                       >
                         {addingProductId === product.id ? (
