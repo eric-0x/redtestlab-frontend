@@ -143,14 +143,19 @@ const WomensHealthPackagesGrid = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        // Fetch all packages with their category from the correct endpoint
+        // Fetch all packages with their category from the production endpoint
         const response = await fetch("https://redtestlab.com/api/product/type/packages")
         if (!response.ok) {
           throw new Error("Failed to fetch products")
         }
         const data = await response.json()
-        // Filter products whose category.type === 'WOMEN'
-        const womenProducts: Product[] = data.filter((product: Product) => product.category && product.category.type === "WOMEN")
+        // Filter products: only PACKAGE productType and category.type === 'WOMEN' (case-insensitive)
+        const womenProducts: Product[] = data.filter((product: Product) =>
+          product &&
+          String(product.productType || '').toUpperCase() === 'PACKAGE' &&
+          product.category &&
+          String(product.category.type || '').toUpperCase() === 'WOMEN'
+        )
         // Group by category
         const categoryMap: { [key: number]: Category } = {}
         womenProducts.forEach((product) => {
@@ -239,9 +244,9 @@ const WomensHealthPackagesGrid = () => {
   // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber)
 
-  const handleAddToCart = async (productId: number) => {
+  const handleAddToCart = async (e: React.MouseEvent, productId: number) => {
+    e.stopPropagation() // Prevent card click event
     try {
-      router.push("/cart")
       setAddingProductId(productId)
       await addToCart(productId, 1)
       setNotification({
@@ -250,6 +255,7 @@ const WomensHealthPackagesGrid = () => {
         message: "Product has been added to your cart.",
         type: "success",
       })
+      router.push("/cart")
     } catch (err) {
       setNotification({
         show: true,
@@ -260,6 +266,18 @@ const WomensHealthPackagesGrid = () => {
     } finally {
       setAddingProductId(null)
     }
+  }
+
+  const handlePackageClick = (product: Product) => {
+    // Generate slug from product name
+    const slug = product.name
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/--+/g, '-')
+      .trim();
+    
+    router.push(`/package/${slug}`);
   }
 
   const closeNotification = () => {
@@ -337,7 +355,8 @@ const WomensHealthPackagesGrid = () => {
           return (
             <div
               key={product.id}
-              className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full"
+              className="bg-white rounded-lg shadow-md border border-blue-100 flex flex-col transition-transform duration-300 hover:shadow-lg transform hover:-translate-y-1 h-full cursor-pointer"
+              onClick={() => handlePackageClick(product)}
             >
               <div className="h-full flex flex-col">
                 <div className="p-4 border-b border-blue-50">
@@ -420,7 +439,7 @@ const WomensHealthPackagesGrid = () => {
                   <div className="flex space-x-2 w-full sm:w-auto">
                     <button
                       className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition-colors duration-300 font-medium flex items-center justify-center"
-                      onClick={() => handleAddToCart(product.id)}
+                      onClick={(e) => handleAddToCart(e, product.id)}
                       disabled={addingProductId === product.id || cartLoading}
                     >
                       {addingProductId === product.id ? (
