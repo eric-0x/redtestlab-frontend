@@ -1,23 +1,43 @@
 import * as React from "react"
-import { OTPInput, OTPInputContext } from "input-otp"
+// Minimal local OTP input implementation to replace external dependency
+const OTPInputContext = React.createContext<any>({
+  slots: [],
+})
+
+const OTPInput = React.forwardRef(function OTPInput(
+  { children, length = 4, ...props }: any,
+  ref: any
+) {
+  const [values, setValues] = React.useState(Array(length).fill(""))
+
+  const slots = values.map((v, i) => ({ char: v, isActive: false, hasFakeCaret: false }))
+
+  return (
+    <OTPInputContext.Provider value={{ slots }}>
+      <div ref={ref} {...props}>
+        {children}
+      </div>
+    </OTPInputContext.Provider>
+  )
+})
+OTPInput.displayName = "OTPInput"
 import { Dot } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
-const InputOTP = React.forwardRef<
-  React.ElementRef<typeof OTPInput>,
-  React.ComponentPropsWithoutRef<typeof OTPInput>
->(({ className, containerClassName, ...props }, ref) => (
-  <OTPInput
-    ref={ref}
-    containerClassName={cn(
-      "flex items-center gap-2 has-[:disabled]:opacity-50",
-      containerClassName
-    )}
-    className={cn("disabled:cursor-not-allowed", className)}
-    {...props}
-  />
-))
+const InputOTP = React.forwardRef<React.ElementRef<typeof OTPInput>, any>(
+  ({ className, containerClassName, ...props }, ref) => (
+    <OTPInput
+      ref={ref}
+      containerClassName={cn(
+        "flex items-center gap-2 has-[:disabled]:opacity-50",
+        containerClassName
+      )}
+      className={cn("disabled:cursor-not-allowed", className)}
+      {...props}
+    />
+  )
+)
 InputOTP.displayName = "InputOTP"
 
 const InputOTPGroup = React.forwardRef<
