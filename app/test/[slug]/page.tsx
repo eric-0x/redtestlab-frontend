@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDown, Share2, Phone, Users, Shield, Clock, Award, ChevronRight, Star, CheckCircle } from "lucide-react"
+import { ChevronDown, Share2, Phone, Users, Shield, Clock, Award, ChevronRight, Star, CheckCircle, Copy, Facebook, Linkedin, Link as LinkIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter, useParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Separator } from "@/components/ui/separator"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { useToast } from "@/hooks/use-toast"
+import { Input } from "@/components/ui/input"
 import { useCart } from "@/components/CartContext"
 
 // Interfaces
@@ -55,11 +58,14 @@ export default function TestDetailsPage() {
   const [addingToCart, setAddingToCart] = useState(false)
   const [popularTests, setPopularTests] = useState<TestData[]>([])
   const [bookingTestId, setBookingTestId] = useState<number | null>(null)
+  const [shareOpen, setShareOpen] = useState(false)
+  const [currentUrl, setCurrentUrl] = useState("")
 
   const router = useRouter()
   const params = useParams()
   const slug = params.slug as string
   const { addToCart } = useCart()
+  const { toast } = useToast()
 
   useEffect(() => {
     const fetchTestData = async () => {
@@ -191,6 +197,9 @@ export default function TestDetailsPage() {
 
     fetchTestData()
     fetchPopularTests()
+    if (typeof window !== "undefined") {
+      setCurrentUrl(window.location.href)
+    }
   }, [slug])
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -232,6 +241,33 @@ export default function TestDetailsPage() {
       console.error("Error booking test:", err)
     } finally {
       setBookingTestId(null)
+    }
+  }
+
+  const handleShareClick = async () => {
+    const title = testData?.name || "Redtestlab Test"
+    const text = "Check out this health test on Redtestlab"
+    const url = currentUrl
+    if (navigator.share) {
+      try {
+        await navigator.share({ title, text, url })
+        toast({ title: "Shared", description: "Thanks for sharing this test." })
+        return
+      } catch (err: any) {
+        if (err?.name === "AbortError") return
+      }
+    }
+    setShareOpen(true)
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(currentUrl)
+      toast({ title: "Link copied", description: "Test URL copied to clipboard." })
+      setShareOpen(false)
+    } catch (err) {
+      console.error("Copy failed", err)
+      toast({ title: "Copy failed", description: "Unable to copy link. Please try again." })
     }
   }
 
@@ -290,9 +326,85 @@ export default function TestDetailsPage() {
                       </div>
                     </div>
                   </div>
-                  <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700 ml-2">
-                    <Share2 className="w-4 sm:w-5 h-4 sm:h-5" />
-                  </Button>
+                  <Popover open={shareOpen} onOpenChange={setShareOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-500 hover:text-gray-700 ml-2"
+                        aria-label="Share this test"
+                        onClick={handleShareClick}
+                      >
+                        <Share2 className="w-4 sm:w-5 h-4 sm:h-5" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent align="end" className="w-80 p-3 bg-white border shadow-lg rounded-lg">
+                      <div>
+                        <div className="mb-3">
+                          <p className="text-sm font-semibold text-gray-900">Share this test</p>
+                          <p className="text-xs text-gray-500">Choose a platform or copy the link</p>
+                        </div>
+                        <div className="grid grid-cols-3 gap-3 mb-3">
+                          <Button asChild variant="ghost" className="h-auto py-3 flex flex-col items-center gap-2 border rounded-lg hover:bg-gray-50">
+                            <a
+                              href={`https://wa.me/?text=${encodeURIComponent((testData?.name || "") + " " + currentUrl)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Share on WhatsApp"
+                            >
+                              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-green-50">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-24 h-24">
+                                  <path fill="#fff" d="M4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5c5.1,0,9.8,2,13.4,5.6	C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19c0,0,0,0,0,0h0c-3.2,0-6.3-0.8-9.1-2.3L4.9,43.3z"></path>
+                                  <path fill="#fff" d="M4.9,43.8c-0.1,0-0.3-0.1-0.4-0.1c-0.1-0.1-0.2-0.3-0.1-0.5L7,33.5c-1.6-2.9-2.5-6.2-2.5-9.6	C4.5,13.2,13.3,4.5,24,4.5c5.2,0,10.1,2,13.8,5.7c3.7,3.7,5.7,8.6,5.7,13.8c0,10.7-8.7,19.5-19.5,19.5c-3.2,0-6.3-0.8-9.1-2.3	L5,43.8C5,43.8,4.9,43.8,4.9,43.8z"></path>
+                                  <path fill="#cfd8dc" d="M24,5c5.1,0,9.8,2,13.4,5.6C41,14.2,43,18.9,43,24c0,10.5-8.5,19-19,19h0c-3.2,0-6.3-0.8-9.1-2.3	L4.9,43.3l2.7-9.8C5.9,30.6,5,27.3,5,24C5,13.5,13.5,5,24,5 M24,43L24,43L24,43 M24,43L24,43L24,43 M24,4L24,4C13,4,4,13,4,24	c0,3.4,0.8,6.7,2.5,9.6L3.9,43c-0.1,0.3,0,0.7,0.3,1c0.2,0.2,0.4,0.3,0.7,0.3c0.1,0,0.2,0,0.3,0l9.7-2.5c2.8,1.5,6,2.2,9.2,2.2	c11,0,20-9,20-20c0-5.3-2.1-10.4-5.8-14.1C34.4,6.1,29.4,4,24,4L24,4z"></path>
+                                  <path fill="#40c351" d="M35.2,12.8c-3-3-6.9-4.6-11.2-4.6C15.3,8.2,8.2,15.3,8.2,24c0,3,0.8,5.9,2.4,8.4L11,33l-1.6,5.8	l6-1.6l0.6,0.3c2.4,1.4,5.2,2.2,8,2.2h0c8.7,0,15.8-7.1,15.8-15.8C39.8,19.8,38.2,15.8,35.2,12.8z"></path>
+                                  <path fill="#fff" fillRule="evenodd" d="M19.3,16c-0.4-0.8-0.7-0.8-1.1-0.8c-0.3,0-0.6,0-0.9,0	s-0.8,0.1-1.3,0.6c-0.4,0.5-1.7,1.6-1.7,4s1.7,4.6,1.9,4.9s3.3,5.3,8.1,7.2c4,1.6,4.8,1.3,5.7,1.2c0.9-0.1,2.8-1.1,3.2-2.3	c0.4-1.1,0.4-2.1,0.3-2.3c-0.1-0.2-0.4-0.3-0.9-0.6s-2.8-1.4-3.2-1.5c-0.4-0.2-0.8-0.2-1.1,0.2c-0.3,0.5-1.2,1.5-1.5,1.9	c-0.3,0.3-0.6,0.4-1,0.1c-0.5-0.2-2-0.7-3.8-2.4c-1.4-1.3-2.4-2.8-2.6-3.3c-0.3-0.5,0-0.7,0.2-1c0.2-0.2,0.5-0.6,0.7-0.8	c0.2-0.3,0.3-0.5,0.5-0.8c0.2-0.3,0.1-0.6,0-0.8C20.6,19.3,19.7,17,19.3,16z" clipRule="evenodd"></path>
+                                </svg>
+                              </span>
+                              <span className="text-xs font-medium text-gray-800">WhatsApp</span>
+                            </a>
+                          </Button>
+                          <Button asChild variant="ghost" className="h-auto py-3 flex flex-col items-center gap-2 border rounded-lg hover:bg-gray-50">
+                            <a
+                              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Share on Facebook"
+                            >
+                              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-50">
+                                <Facebook className="w-5 h-5 text-blue-600" />
+                              </span>
+                              <span className="text-xs font-medium text-gray-800">Facebook</span>
+                            </a>
+                          </Button>
+                          <Button asChild variant="ghost" className="h-auto py-3 flex flex-col items-center gap-2 border rounded-lg hover:bg-gray-50">
+                            <a
+                              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              aria-label="Share on LinkedIn"
+                            >
+                              <span className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-sky-50">
+                                <Linkedin className="w-5 h-5 text-sky-700" />
+                              </span>
+                              <span className="text-xs font-medium text-gray-800">LinkedIn</span>
+                            </a>
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-medium text-gray-700 flex items-center">
+                            <LinkIcon className="w-3 h-3 mr-1" /> Direct link
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <Input value={currentUrl} readOnly className="text-xs" />
+                            <Button variant="secondary" size="sm" onClick={handleCopyLink} className="whitespace-nowrap">
+                              <Copy className="w-3.5 h-3.5 mr-1" /> Copy
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
