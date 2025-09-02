@@ -74,7 +74,67 @@ export default function TestDetailsPage() {
         }
         
         const data = await response.json()
-        setTestData(data)
+        // Normalize FAQ field from API to ensure FAQ renders like package page
+        const pickArray = (value: any): any[] => (Array.isArray(value) ? value : [])
+        const lowerIncludesFaq = (key: string) => key.toLowerCase().includes('faq')
+        const collectFaqArraysDeep = (obj: any, depth = 0, maxDepth = 3): any[][] => {
+          if (!obj || typeof obj !== 'object' || depth > maxDepth) return []
+          const arraysHere = Object.keys(obj)
+            .filter((k) => lowerIncludesFaq(k) && Array.isArray(obj[k]))
+            .map((k) => obj[k] as any[])
+          const nestedArrays = Object.values(obj)
+            .filter((v: any) => v && typeof v === 'object' && !Array.isArray(v))
+            .flatMap((child: any) => collectFaqArraysDeep(child, depth + 1, maxDepth))
+          return [...arraysHere, ...nestedArrays]
+        }
+        const faqCandidates: any[][] = [
+          pickArray(data?.FAQ),
+          pickArray(data?.Faq),
+          pickArray(data?.faq),
+          pickArray(data?.ProductFaq),
+          pickArray(data?.ProductFAQ),
+          pickArray(data?.productFaq),
+          pickArray(data?.productFAQ),
+          pickArray((data as any)?.ProductFaq_ProductFaq_productIdToProduct),
+          ...collectFaqArraysDeep(data),
+        ]
+        const merged = faqCandidates.flat().filter(Boolean)
+        const normalizedFAQ = merged
+          .map((item: any, idx: number) => {
+            if (item == null) return null
+            if (typeof item === 'string') {
+              return {
+                id: idx + 1,
+                question: 'FAQ',
+                answer: item,
+                productId: data?.id,
+              }
+            }
+            if (typeof item !== 'object') return null
+
+            const keys = Object.keys(item)
+            const findKey = (pred: (k: string) => boolean) => keys.find((k) => pred(k))
+            const getVal = (k?: string) => (k ? (item as any)[k] : undefined)
+
+            const qKey = findKey((k) => k.toLowerCase().includes('question') || k.toLowerCase() === 'title')
+            const aKey = findKey((k) => {
+              const l = k.toLowerCase()
+              return l.includes('answer') || l.includes('content') || l.includes('desc') || l === 'description'
+            })
+
+            const question = (getVal('question') || getVal('Question') || getVal(qKey)) as any
+            const answer = (getVal('answer') || getVal('Answer') || getVal('content') || getVal('Content') || getVal('description') || getVal(aKey)) as any
+
+            if (!question && !answer) return null
+            return {
+              id: typeof item?.id === 'number' ? item.id : idx + 1,
+              question: String(question ?? 'FAQ'),
+              answer: String(answer ?? ''),
+              productId: item?.productId ?? data?.id,
+            }
+          })
+          .filter((x: any) => x && x.answer)
+        setTestData({ ...data, FAQ: normalizedFAQ })
       } catch (err) {
         console.error("Error fetching test data:", err)
         setError(err instanceof Error ? err.message : "Failed to load test")
