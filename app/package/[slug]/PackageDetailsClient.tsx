@@ -32,6 +32,22 @@ interface TestProduct {
   categoryId: number;
   productType: string;
   Parameter: Parameter[];
+  childLinks?: {
+    id: number;
+    parentTestId: number;
+    childTestId: number;
+    childTest: {
+      id: number;
+      name: string;
+      slug: string;
+      actualPrice: number;
+      discountedPrice: number | null;
+      productType: string;
+      overview: string;
+      Parameter: Parameter[];
+      FAQ: FAQ[];
+    };
+  }[];
 }
 
 interface ProductPackageLink {
@@ -265,7 +281,10 @@ export default function PackageDetailsClient({ slug }: { slug?: string }) {
   )
 
   const allParameters = packageData.ProductPackageLink_ProductPackageLink_packageIdToProduct
-    ?.flatMap(link => link.Product_ProductPackageLink_testIdToProduct.Parameter || []) || []
+    ?.flatMap(link => 
+      link.Product_ProductPackageLink_testIdToProduct.childLinks
+        ?.flatMap((childLink: any) => childLink.childTest.Parameter || []) || []
+    ) || []
 
   return (
     <div className="min-h-screen bg-white">

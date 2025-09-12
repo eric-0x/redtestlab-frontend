@@ -42,6 +42,22 @@ interface TestData {
   FAQ?: FAQ[];
   productType: string;
   Parameter?: Parameter[];
+  childLinks?: {
+    id: number;
+    parentTestId: number;
+    childTestId: number;
+    childTest: {
+      id: number;
+      name: string;
+      slug: string;
+      actualPrice: number;
+      discountedPrice: number | null;
+      productType: string;
+      overview: string;
+      Parameter: Parameter[];
+      FAQ: FAQ[];
+    };
+  }[];
 }
 
 export default function TestDetailsPage() {
@@ -110,7 +126,7 @@ export default function TestDetailsPage() {
             if (item == null) return null
             if (typeof item === 'string') {
               return {
-                id: idx + 1,
+                id: `string-${idx}`,
                 question: 'FAQ',
                 answer: item,
                 productId: data?.id,
@@ -133,13 +149,22 @@ export default function TestDetailsPage() {
 
             if (!question && !answer) return null
             return {
-              id: typeof item?.id === 'number' ? item.id : idx + 1,
+              id: typeof item?.id === 'number' ? `original-${item.id}` : `generated-${idx}`,
               question: String(question ?? 'FAQ'),
               answer: String(answer ?? ''),
               productId: item?.productId ?? data?.id,
             }
           })
           .filter((x: any) => x && x.answer)
+          // Deduplicate FAQs based on question and answer content
+          .filter((faq: any, index: number, array: any[]) => 
+            array.findIndex((f: any) => f.question === faq.question && f.answer === faq.answer) === index
+          )
+          // Assign unique sequential IDs after deduplication
+          .map((faq: any, index: number) => ({
+            ...faq,
+            id: index + 1
+          }))
         setTestData({ ...data, FAQ: normalizedFAQ })
       } catch (err) {
         console.error("Error fetching test data:", err)
@@ -297,7 +322,10 @@ export default function TestDetailsPage() {
     ((testData.actualPrice - testData.discountedPrice) / testData.actualPrice) * 100
   )
 
-  const allParameters = testData.Parameter || []
+  const allParameters = [
+    ...(testData.Parameter || []),
+    ...(testData.childLinks?.flatMap((childLink: any) => childLink.childTest.Parameter || []) || [])
+  ]
 
   return (
     <div className="min-h-screen bg-white">
@@ -526,13 +554,13 @@ export default function TestDetailsPage() {
                           </p>
                         </>
                       )}
-                      <Button
+                      {/* <Button
                         variant="link"
                         className="p-0 h-auto text-blue-600 hover:text-blue-700 font-semibold text-sm sm:text-base"
                       >
                         Read Complete Medical Guide
                         <ChevronRight className="w-4 h-4 ml-1" />
-                      </Button>
+                      </Button> */}
                     </div>
                   </CardContent>
                 </CollapsibleContent>

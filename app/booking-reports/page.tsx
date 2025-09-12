@@ -138,10 +138,7 @@ const EmptyState = ({ type }: { type: TabType }) => (
         ? "You have no upcoming or past bookings. Create your first booking to get started."
         : "No reports have been generated yet. Create a new report to analyze your data."}
     </p>
-    <button className="mt-7 inline-flex items-center px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-lg hover:scale-105">
-      <Plus className="h-4 w-4 mr-2" />
-      Create New {type === "bookings" ? "Booking" : "Report"}
-    </button>
+  
   </div>
 )
 

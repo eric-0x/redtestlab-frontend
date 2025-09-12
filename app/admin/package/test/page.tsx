@@ -4,7 +4,7 @@ import React from "react"
 import type { ChangeEvent } from "react"
 
 import { useState, useEffect } from "react"
-import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic, List, ListOrdered } from "lucide-react"
+import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic } from "lucide-react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Image from "@tiptap/extension-image"
@@ -39,13 +39,13 @@ interface Product {
   Parameter?: Parameter[]
   tags: string
   actualPrice: number
-  discountedPrice: number
+  discountedPrice: number | null
   categoryId: number
   description?: string
   category?: Category
   productType: string
   overview?: string
-  faq?: FAQ[]
+  FAQ?: FAQ[]
   childLinks?: {
     childTest: Product
   }[]
@@ -94,6 +94,7 @@ export default function TestManagement() {
   const [editingProduct, setEditingProduct] = useState<number | null>(null)
   const [notification, setNotification] = useState<Notification>({ show: false, message: "", type: "" })
   const [searchTerm, setSearchTerm] = useState("")
+  const [parameterSearchTerm, setParameterSearchTerm] = useState("")
   const [expandedId, setExpandedId] = useState<number | null>(null)
 
   // Form state
@@ -279,27 +280,51 @@ export default function TestManagement() {
     }
   }
 
-  const handleEditClick = (product: Product) => {
-    // Extract parameter IDs from the test's linked parameters
-    const parameterIds = product.childLinks?.map(link => link.childTest.id) || []
-    
-    setFormData({
-      name: product.name,
-      reportTime: product.reportTime,
-      tags: product.tags,
-      actualPrice: product.actualPrice.toString(),
-      discountedPrice: product.discountedPrice.toString(),
-      categoryId: product.categoryId,
-      description: product.description || "",
-      productType: "TEST",
-      parameterIds: parameterIds,
-      overview: product.overview || "",
-      faq: product.faq || [],
-    })
-    setEditingProduct(product.id)
-    setShowForm(true)
-    if (editor) {
-      editor.commands.setContent(product.overview || "")
+  const handleEditClick = async (product: Product) => {
+    try {
+      setIsLoading(true)
+      
+      // Fetch the complete product data using slug-based API
+      const response = await fetch(`${API_URL}/product/slug/${product.name.toLowerCase().replace(/\s+/g, '-')}`)
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch product details")
+      }
+      
+      const productData = await response.json()
+      
+      // Extract parameter IDs from the test's linked parameters
+      const parameterIds = productData.childLinks?.map((link: any) => link.childTest.id) || []
+      
+      const overviewContent = productData.overview || ""
+      const faqData = productData.FAQ || []
+      
+      setFormData({
+        name: productData.name,
+        reportTime: productData.reportTime,
+        tags: productData.tags,
+        actualPrice: productData.actualPrice.toString(),
+        discountedPrice: (productData.discountedPrice || 0).toString(),
+        categoryId: productData.categoryId,
+        description: productData.description || "",
+        productType: "TEST",
+        parameterIds: parameterIds,
+        overview: overviewContent,
+        faq: faqData,
+      })
+      setEditingProduct(productData.id)
+      setShowForm(true)
+      
+      // Set editor content with a delay to ensure it works
+      setTimeout(() => {
+        if (editor && overviewContent) {
+          editor.commands.setContent(overviewContent)
+        }
+      }, 150)
+    } catch (err: unknown) {
+      showNotification(err instanceof Error ? err.message : "Failed to load product details", "error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -311,6 +336,11 @@ export default function TestManagement() {
 
     if (formData.parameterIds.length === 0) {
       showNotification("At least one parameter must be selected", "error")
+      return false
+    }
+
+    if (!formData.actualPrice || parseFloat(formData.actualPrice) <= 0) {
+      showNotification("Actual Price is required and must be greater than 0", "error")
       return false
     }
 
@@ -337,6 +367,8 @@ export default function TestManagement() {
         tags: formData.tags,
         productType: "TEST",
         parameterIds: formData.parameterIds,
+        overview: formData.overview,
+        faq: formData.faq,
       }
 
       let url = `${API_URL}/product`
@@ -411,13 +443,31 @@ export default function TestManagement() {
       return <span className="text-gray-500">No parameters</span>
     }
 
-    return childLinks.map((link, index) => (
-      <div key={index} className="text-sm">
-        <span className="font-medium text-gray-700">{link.childTest.name}</span>
-        <span className="text-gray-500 ml-2">₹{link.childTest.actualPrice}</span>
+    const displayCount = 2
+    const visibleLinks = childLinks.slice(0, displayCount)
+    const remainingCount = childLinks.length - displayCount
+
+    return (
+      <div className="space-y-1">
+        {visibleLinks.map((link, index) => (
+          <div key={index} className="text-sm">
+            <span className="font-medium text-gray-700">{link.childTest.name}</span>
+            <span className="text-gray-500 ml-2">₹{link.childTest.actualPrice}</span>
+          </div>
+        ))}
+        {remainingCount > 0 && (
+          <div className="text-sm text-blue-600 font-medium">
+            +{remainingCount} more
+          </div>
+        )}
       </div>
-    ))
+    )
   }
+
+  const filteredParameters = availableParameters.filter((parameter) => {
+    const parameterNames = parameter.Parameter?.map(p => p.name).join(" ") || parameter.name
+    return parameterNames.toLowerCase().includes(parameterSearchTerm.toLowerCase())
+  })
 
   const filteredProducts = products.filter((product) => {
     const parametersText = (product.childLinks || [])
@@ -579,6 +629,21 @@ export default function TestManagement() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Actual Price*</label>
+                      <input
+                        type="number"
+                        name="actualPrice"
+                        value={formData.actualPrice}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g., 800"
+                        required
+                      />
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price*</label>
                       <input
                         type="number"
@@ -589,6 +654,7 @@ export default function TestManagement() {
                         min="0"
                         step="0.01"
                         placeholder="e.g., 599"
+                        required
                       />
                     </div>
                   </div>
@@ -608,11 +674,28 @@ export default function TestManagement() {
                   {/* Parameter Selection */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-3">Select Parameters*</label>
+                    
+                    {/* Parameter Search */}
+                    <div className="mb-3">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                        <input
+                          type="text"
+                          placeholder="Search parameters..."
+                          value={parameterSearchTerm}
+                          onChange={(e) => setParameterSearchTerm(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                        />
+                      </div>
+                    </div>
+                    
                     <div className="bg-gray-50 border rounded-lg p-4 max-h-64 overflow-y-auto">
-                      {availableParameters.length === 0 ? (
-                        <div className="text-gray-400 text-sm">No parameters available. Please create parameters first.</div>
+                      {filteredParameters.length === 0 ? (
+                        <div className="text-gray-400 text-sm">
+                          {parameterSearchTerm ? "No parameters found matching your search." : "No parameters available. Please create parameters first."}
+                        </div>
                       ) : (
-                        availableParameters.map((parameter) => (
+                        filteredParameters.map((parameter) => (
                           <div key={parameter.id} className="flex items-center justify-between py-2 border-b border-gray-200 last:border-b-0">
                             <div className="flex items-center">
                               <input
@@ -647,16 +730,6 @@ export default function TestManagement() {
                     )}
                   </div>
 
-                  <div className="hidden">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Actual Price (Auto-calculated)</label>
-                    <input
-                      type="text"
-                      name="actualPrice"
-                      value={formData.actualPrice}
-                      readOnly
-                      className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600"
-                    />
-                  </div>
 
                   {/* Overview Section with TipTap Editor */}
                   <div>
@@ -667,39 +740,27 @@ export default function TestManagement() {
                         <div className="border-b p-2 flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            onClick={() => {
+                              editor?.chain().focus().toggleBold().run()
+                            }}
                             className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("bold") ? "bg-gray-200" : ""
+                              editor?.isActive("bold") ? "bg-gray-200" : ""
                             }`}
+                            disabled={!editor}
                           >
                             <Bold className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
-                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            onClick={() => {
+                              editor?.chain().focus().toggleItalic().run()
+                            }}
                             className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("italic") ? "bg-gray-200" : ""
+                              editor?.isActive("italic") ? "bg-gray-200" : ""
                             }`}
+                            disabled={!editor}
                           >
                             <Italic className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor.chain().focus().toggleBulletList().run()}
-                            className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("bulletList") ? "bg-gray-200" : ""
-                            }`}
-                          >
-                            <List className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                            className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("orderedList") ? "bg-gray-200" : ""
-                            }`}
-                          >
-                            <ListOrdered className="h-4 w-4" />
                           </button>
                         </div>
                       )}
@@ -907,11 +968,11 @@ export default function TestManagement() {
                               )}
                               
                               {/* FAQ Section */}
-                              {product.faq && Array.isArray(product.faq) && product.faq.length > 0 && (
+                              {product.FAQ && Array.isArray(product.FAQ) && product.FAQ.length > 0 && (
                                 <div>
                                   <h4 className="font-medium text-gray-700 mb-2">FAQ</h4>
                                   <div className="space-y-3">
-                                    {product.faq.map((faqItem: any, index: number) => (
+                                    {product.FAQ.map((faqItem: any, index: number) => (
                                       <div key={index} className="bg-white p-3 rounded border">
                                         <div className="font-medium text-gray-700 text-sm mb-1">
                                           Q: {faqItem.question}
@@ -942,7 +1003,7 @@ export default function TestManagement() {
                                   <div className="space-y-1 text-sm">
                                     <div><span className="font-medium">Actual Price:</span> ₹{product.actualPrice}</div>
                                     <div><span className="font-medium">Discounted Price:</span> ₹{product.discountedPrice}</div>
-                                    <div><span className="font-medium">Savings:</span> ₹{product.actualPrice - product.discountedPrice}</div>
+                                    <div><span className="font-medium">Savings:</span> ₹{product.actualPrice - (product.discountedPrice || 0)}</div>
                                   </div>
                                 </div>
                               </div>
