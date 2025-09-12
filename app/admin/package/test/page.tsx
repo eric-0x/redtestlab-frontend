@@ -339,6 +339,11 @@ export default function TestManagement() {
       return false
     }
 
+    if (!formData.actualPrice || parseFloat(formData.actualPrice) <= 0) {
+      showNotification("Actual Price is required and must be greater than 0", "error")
+      return false
+    }
+
     if (!formData.discountedPrice || parseFloat(formData.discountedPrice) <= 0) {
       showNotification("Discounted Price is required and must be greater than 0", "error")
       return false
@@ -624,6 +629,21 @@ export default function TestManagement() {
                     </div>
 
                     <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Actual Price*</label>
+                      <input
+                        type="number"
+                        name="actualPrice"
+                        value={formData.actualPrice}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        min="0"
+                        step="0.01"
+                        placeholder="e.g., 800"
+                        required
+                      />
+                    </div>
+
+                    <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Discounted Price*</label>
                       <input
                         type="number"
@@ -634,6 +654,7 @@ export default function TestManagement() {
                         min="0"
                         step="0.01"
                         placeholder="e.g., 599"
+                        required
                       />
                     </div>
                   </div>
@@ -709,16 +730,6 @@ export default function TestManagement() {
                     )}
                   </div>
 
-                  <div className="hidden">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Actual Price (Auto-calculated)</label>
-                    <input
-                      type="text"
-                      name="actualPrice"
-                      value={formData.actualPrice}
-                      readOnly
-                      className="w-full px-3 py-2 border rounded-lg bg-gray-100 text-gray-600"
-                    />
-                  </div>
 
                   {/* Overview Section with TipTap Editor */}
                   <div>

@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic, List, ListOrdered } from "lucide-react"
+import { Edit, Trash2, Plus, X, Save, Package, Search, AlertCircle, CheckCircle2, ChevronDown, Bold, Italic } from "lucide-react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Image from "@tiptap/extension-image"
@@ -18,12 +18,12 @@ interface Product {
   reportTime: number | string
   tags: string
   actualPrice: number
-  discountedPrice: number
+  discountedPrice: number | null
   categoryId: number
   category?: Category
   productType?: string
   overview?: string
-  faq?: FAQ[]
+  FAQ?: FAQ[]
   ProductPackageLink_ProductPackageLink_packageIdToProduct?: Array<{
     id: number
     packageId: number
@@ -47,7 +47,7 @@ interface FormData {
   reportTime: number
   tags: string
   actualPrice: number
-  discountedPrice: number
+  discountedPrice: number | string
   categoryId: number | string
   testIds: number[]
   overview: string
@@ -83,7 +83,7 @@ export default function PackageManagement() {
     reportTime: 0,
     tags: "",
     actualPrice: 0,
-    discountedPrice: 0,
+    discountedPrice: "",
     categoryId: "",
     testIds: [],
     overview: "",
@@ -238,7 +238,7 @@ export default function PackageManagement() {
       reportTime: 0,
       tags: "",
       actualPrice: 0,
-      discountedPrice: 0,
+      discountedPrice: "",
       categoryId: "",
       testIds: [],
       overview: "",
@@ -250,24 +250,49 @@ export default function PackageManagement() {
     }
   }
 
-  const handleEditClick = (product: any) => {
-    // Get testIds from ProductPackageLink_ProductPackageLink_packageIdToProduct
-    const testIds = (product.ProductPackageLink_ProductPackageLink_packageIdToProduct || []).map((link: any) => link.testId)
-    setFormData({
-      name: product.name,
-      reportTime: Number(product.reportTime),
-      tags: product.tags,
-      actualPrice: product.actualPrice,
-      discountedPrice: product.discountedPrice,
-      categoryId: product.categoryId,
-      testIds,
-      overview: product.overview || "",
-      faq: product.faq || [],
-    })
-    setEditingProduct(product.id)
-    setShowForm(true)
-    if (editor) {
-      editor.commands.setContent(product.overview || "")
+  const handleEditClick = async (product: any) => {
+    try {
+      setIsLoading(true)
+      
+      // Fetch the complete product data using slug-based API
+      const response = await fetch(`${API_URL}/product/slug/${product.name.toLowerCase().replace(/\s+/g, '-')}`)
+      
+      if (!response.ok) {
+        throw new Error("Failed to fetch product details")
+      }
+      
+      const productData = await response.json()
+      
+      // Get testIds from ProductPackageLink_ProductPackageLink_packageIdToProduct
+      const testIds = (productData.ProductPackageLink_ProductPackageLink_packageIdToProduct || []).map((link: any) => link.testId)
+      
+      const overviewContent = productData.overview || ""
+      const faqData = productData.FAQ || []
+      
+      setFormData({
+        name: productData.name,
+        reportTime: Number(productData.reportTime),
+        tags: productData.tags,
+        actualPrice: productData.actualPrice,
+        discountedPrice: (productData.discountedPrice || "").toString(),
+        categoryId: productData.categoryId,
+        testIds,
+        overview: overviewContent,
+        faq: faqData,
+      })
+      setEditingProduct(productData.id)
+      setShowForm(true)
+      
+      // Set editor content with a delay to ensure it works
+      setTimeout(() => {
+        if (editor && overviewContent) {
+          editor.commands.setContent(overviewContent)
+        }
+      }, 150)
+    } catch (err: unknown) {
+      showNotification(err instanceof Error ? err.message : "Failed to load product details", "error")
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -296,7 +321,7 @@ export default function PackageManagement() {
         ...formData,
         reportTime: Number.parseInt(formData.reportTime.toString()),
         actualPrice: Number.parseFloat(formData.actualPrice.toString()),
-        discountedPrice: Number.parseFloat(formData.discountedPrice.toString()),
+        discountedPrice: formData.discountedPrice ? Number.parseFloat(formData.discountedPrice.toString()) : null,
         productType: "PACKAGE",
       }
 
@@ -560,39 +585,27 @@ export default function PackageManagement() {
                         <div className="border-b p-2 flex gap-2 flex-wrap">
                           <button
                             type="button"
-                            onClick={() => editor.chain().focus().toggleBold().run()}
+                            onClick={() => {
+                              editor?.chain().focus().toggleBold().run()
+                            }}
                             className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("bold") ? "bg-gray-200" : ""
+                              editor?.isActive("bold") ? "bg-gray-200" : ""
                             }`}
+                            disabled={!editor}
                           >
                             <Bold className="h-4 w-4" />
                           </button>
                           <button
                             type="button"
-                            onClick={() => editor.chain().focus().toggleItalic().run()}
+                            onClick={() => {
+                              editor?.chain().focus().toggleItalic().run()
+                            }}
                             className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("italic") ? "bg-gray-200" : ""
+                              editor?.isActive("italic") ? "bg-gray-200" : ""
                             }`}
+                            disabled={!editor}
                           >
                             <Italic className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor.chain().focus().toggleBulletList().run()}
-                            className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("bulletList") ? "bg-gray-200" : ""
-                            }`}
-                          >
-                            <List className="h-4 w-4" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                            className={`p-2 rounded hover:bg-gray-100 ${
-                              editor.isActive("orderedList") ? "bg-gray-200" : ""
-                            }`}
-                          >
-                            <ListOrdered className="h-4 w-4" />
                           </button>
                         </div>
                       )}
@@ -762,8 +775,8 @@ export default function PackageManagement() {
                     </div>
 
                     <div className="flex flex-col items-end gap-2">
-                      <div className="text-2xl font-bold text-gray-900">₹{product.discountedPrice}</div>
-                      {product.discountedPrice < product.actualPrice && (
+                      <div className="text-2xl font-bold text-gray-900">₹{product.discountedPrice || product.actualPrice}</div>
+                      {product.discountedPrice && product.discountedPrice < product.actualPrice && (
                         <div className="text-sm line-through text-gray-500">₹{product.actualPrice}</div>
                       )}
                     </div>
@@ -829,11 +842,11 @@ export default function PackageManagement() {
                       )}
                       
                       {/* FAQ Section */}
-                      {product.faq && Array.isArray(product.faq) && product.faq.length > 0 && (
+                      {product.FAQ && Array.isArray(product.FAQ) && product.FAQ.length > 0 && (
                         <div>
                           <h4 className="font-medium text-gray-700 mb-2">FAQ</h4>
                           <div className="space-y-3">
-                            {product.faq.map((faqItem: any, index: number) => (
+                            {product.FAQ.map((faqItem: any, index: number) => (
                               <div key={index} className="bg-white p-3 rounded border">
                                 <div className="font-medium text-gray-700 text-sm mb-1">
                                   Q: {faqItem.question}
