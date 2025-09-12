@@ -6,7 +6,6 @@ import { useCart } from "../../components/CartContext"
 import { AnimatePresence, motion } from "framer-motion"
 import { processPayment } from "../../components/payment-service"
 import { useRouter } from "next/navigation"
-import Head from "next/head"
 import Script from "next/script"
 
 // Interface for the meta tags API response
@@ -398,8 +397,6 @@ const HealthTestPackagesCarousel = () => {
           setRazorpayLoaded(false)
         }}
       />
-
-      {/* ...existing code... */}
 
       <div className="w-full max-w-full mx-auto px-3 md:px-12 py-8 bg-gray-50 rounded-xl shadow-sm">
         <Notification

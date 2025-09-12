@@ -150,7 +150,7 @@ const AllClient = () => {
         }
 
         // Fetch all products
-        const productsResponse = await fetch("http://localhost:5000/api/product/type/packages")
+        const productsResponse = await fetch("https://redtestlab.com/api/product/type/packages")
         if (!productsResponse.ok) {
           throw new Error("Failed to fetch products")
         }
@@ -161,7 +161,7 @@ const AllClient = () => {
         setPackages(productsData)
 
         // Fetch categories
-        const categoriesResponse = await fetch("http://localhost:5000/api/category")
+        const categoriesResponse = await fetch("https://redtestlab.com/api/category")
         if (!categoriesResponse.ok) {
           throw new Error("Failed to fetch categories")
         }

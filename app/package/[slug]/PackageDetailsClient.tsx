@@ -106,7 +106,7 @@ export default function PackageDetailsClient({ slug }: { slug?: string }) {
       
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:5000/api/product/slug/${slug}`)
+        const response = await fetch(`https://redtestlab.com/api/product/slug/${slug}`)
         
         if (!response.ok) {
           throw new Error("Package not found")
@@ -124,7 +124,7 @@ export default function PackageDetailsClient({ slug }: { slug?: string }) {
 
     const fetchPopularTests = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/product/type/packages")
+        const response = await fetch("https://redtestlab.com/api/product/type/packages")
         if (response.ok) {
           const data = await response.json()
 
