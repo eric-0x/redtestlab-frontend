@@ -3,7 +3,7 @@
 import React from "react"
 import type { ChangeEvent } from "react"
 import { useState, useEffect } from "react"
-import { Plus, X, Save, AlertCircle, CheckCircle2, Package, Edit, Trash2, Search, Bold, Italic, List, ListOrdered } from "lucide-react"
+import { Plus, X, Save, AlertCircle, CheckCircle2, Package, Edit, Trash2, Search, Bold, Italic } from "lucide-react"
 import { useEditor, EditorContent } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Image from "@tiptap/extension-image"
@@ -28,7 +28,7 @@ interface Product {
   actualPrice: number
   productType: string
   overview?: string
-  faq?: FAQ[]
+  FAQ?: FAQ[]
   Parameter?: Parameter[]
 }
 
@@ -70,10 +70,21 @@ export default function ParameterManagement() {
         bulletList: {
           keepMarks: true,
           keepAttributes: false,
+          HTMLAttributes: {
+            class: "list-disc list-inside",
+          },
         },
         orderedList: {
           keepMarks: true,
           keepAttributes: false,
+          HTMLAttributes: {
+            class: "list-decimal list-inside",
+          },
+        },
+        listItem: {
+          HTMLAttributes: {
+            class: "ml-4",
+          },
         },
       }),
       Image.configure({
@@ -101,18 +112,17 @@ export default function ParameterManagement() {
       },
     },
     immediatelyRender: false,
+    onCreate: ({ editor }) => {
+      if (formData.overview) {
+        editor.commands.setContent(formData.overview)
+      }
+    },
   })
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  // Update editor content when form data changes
-  useEffect(() => {
-    if (editor && mounted && editor.getHTML() !== formData.overview) {
-      editor.commands.setContent(formData.overview)
-    }
-  }, [formData.overview, editor, mounted])
 
   useEffect(() => {
     fetchExistingParameters()
@@ -231,7 +241,9 @@ export default function ParameterManagement() {
       const requestBody = {
         productType: "PARAMETER",
         actualPrice: formData.actualPrice,
-        parameters: validParameters
+        parameters: validParameters,
+        overview: formData.overview,
+        faq: formData.faq
       }
 
       let url = `${API_URL}/product`
@@ -267,17 +279,26 @@ export default function ParameterManagement() {
   }
 
   const handleEdit = (parameter: Product) => {
+    const overviewContent = parameter.overview || ""
+    const faqData = parameter.FAQ || []
+    const parameterData = parameter.Parameter || [{ name: "", unit: "", referenceRange: "" }]
+    
+    // First update the form data
     setFormData({
       actualPrice: parameter.actualPrice,
-      parameters: parameter.Parameter || [],
-      overview: parameter.overview || "",
-      faq: parameter.faq || [],
+      parameters: parameterData,
+      overview: overviewContent,
+      faq: faqData,
     })
-    setParameters(parameter.Parameter || [{ name: "", unit: "", referenceRange: "" }])
+    setParameters(parameterData)
     setEditingParameter(parameter.id)
-    if (editor) {
-      editor.commands.setContent(parameter.overview || "")
-    }
+    
+    // Set editor content with a delay to ensure it works
+    setTimeout(() => {
+      if (editor && overviewContent) {
+        editor.commands.setContent(overviewContent)
+      }
+    }, 150)
   }
 
   const handleDelete = async (id: number) => {
@@ -453,39 +474,27 @@ export default function ParameterManagement() {
                     <div className="border-b p-2 flex gap-2 flex-wrap">
                       <button
                         type="button"
-                        onClick={() => editor.chain().focus().toggleBold().run()}
+                        onClick={() => {
+                          editor?.chain().focus().toggleBold().run()
+                        }}
                         className={`p-2 rounded hover:bg-gray-100 ${
-                          editor.isActive("bold") ? "bg-gray-200" : ""
+                          editor?.isActive("bold") ? "bg-gray-200" : ""
                         }`}
+                        disabled={!editor}
                       >
                         <Bold className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        onClick={() => editor.chain().focus().toggleItalic().run()}
+                        onClick={() => {
+                          editor?.chain().focus().toggleItalic().run()
+                        }}
                         className={`p-2 rounded hover:bg-gray-100 ${
-                          editor.isActive("italic") ? "bg-gray-200" : ""
+                          editor?.isActive("italic") ? "bg-gray-200" : ""
                         }`}
+                        disabled={!editor}
                       >
                         <Italic className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => editor.chain().focus().toggleBulletList().run()}
-                        className={`p-2 rounded hover:bg-gray-100 ${
-                          editor.isActive("bulletList") ? "bg-gray-200" : ""
-                        }`}
-                      >
-                        <List className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                        className={`p-2 rounded hover:bg-gray-100 ${
-                          editor.isActive("orderedList") ? "bg-gray-200" : ""
-                        }`}
-                      >
-                        <ListOrdered className="h-4 w-4" />
                       </button>
                     </div>
                   )}
