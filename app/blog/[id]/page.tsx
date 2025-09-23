@@ -1,7 +1,7 @@
 
 import { Metadata } from "next"
 import { redirect } from "next/navigation"
-import BlogClient from "../BlogClient"
+import BlogClient from "./BlogClient"
 import { 
   generateCanonicalUrl, 
   isNumericId, 

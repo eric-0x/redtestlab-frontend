@@ -150,18 +150,15 @@ const HealthPackagesCarousel = () => {
           throw new Error("Failed to fetch packages");
         }
         const data = await response.json();
-        
-        // Filter for category ID 1 (Top Health Packages)
-        const healthPackages = data.filter((product: Product) => product.categoryId === 14);
-        
-        // Create a mock category structure for compatibility
-        const topHealthCategory: Category = {
+
+        // Use ALL packages without limiting by category
+        const allPackages: Category = {
           id: 1,
-          name: "Top Health Packages",
-          products: healthPackages
+          name: "All Packages",
+          products: data
         };
-        
-        setCategories([topHealthCategory]);
+
+        setCategories([allPackages]);
       } catch (err) {
         console.error("Error fetching packages:", err);
       } finally {
@@ -215,6 +212,7 @@ const HealthPackagesCarousel = () => {
         message: "Product has been added to your cart.",
         type: "success",
       });
+      router.push("/cart");
     } catch (err) {
       setNotification({
         show: true,

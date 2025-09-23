@@ -1064,7 +1064,7 @@ const ScanListing: React.FC = () => {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredScans.map((scan) => {
                 const distance =
                   locationActive && userLocation && scan.scanCenter.latitude && scan.scanCenter.longitude
@@ -1084,11 +1084,11 @@ const ScanListing: React.FC = () => {
                 return (
                   <div
                     key={scan.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full"
                   >
-                    <div className="p-4 sm:p-6">
+                    <div className="p-4 sm:p-6 h-full flex flex-col">
                       {/* Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4 flex-1">
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-3">
                             <div>
@@ -1154,7 +1154,7 @@ const ScanListing: React.FC = () => {
                           </div>
                         </div>
                         {/* Price and Action */}
-                        <div className="mt-4 sm:mt-0 sm:ml-6 sm:w-48 flex-shrink-0">
+                        <div className="mt-2 sm:mt-0 sm:ml-6 sm:w-48 flex-shrink-0 self-stretch flex flex-col justify-between">
                           <div className="text-center sm:text-right">
                             <div className="mb-4">
                               <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
