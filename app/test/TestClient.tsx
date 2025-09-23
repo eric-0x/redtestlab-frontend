@@ -576,55 +576,47 @@ const HealthTestPackagesCarousel = () => {
                         {product.description && (
                           <div className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</div>
                         )}
-                        {/* Display parameters if available */}
+                        {/* Display parameters if available (direct parameters on test) */}
                         {parameterNames.length > 0 && (
                           <div className="mt-2 text-sm text-gray-600">
-                            <div className="font-medium mb-1 text-xs text-gray-500">PARAMETERS:</div>
+                            <div className="font-medium mb-1 text-xs text-gray-500">Parameters</div>
                             <div className="flex flex-wrap gap-2">
-                              {parameterNames.slice(0, 4).map((paramName, index) => (
+                              {parameterNames.slice(0, 2).map((paramName, index) => (
                                 <span key={index} className="bg-green-50 px-2 py-1 rounded-full text-xs text-green-700">
                                   {paramName}
                                 </span>
                               ))}
-                              {parameterNames.length > 4 && (
+                              {parameterNames.length > 2 && (
                                 <span className="bg-gray-50 px-2 py-1 rounded-full text-xs text-gray-600">
-                                  +{parameterNames.length - 4} more
+                                  +{parameterNames.length - 2} more
                                 </span>
                               )}
                             </div>
                           </div>
                         )}
 
-                        {/* Show child tests if present */}
-                        {product.childLinks && product.childLinks.length > 0 && (
-                          <div className="mt-4">
-                          
-                            <div className="space-y-2">
-                              {product.childLinks.map((link: any, idx: number) => (
-                                <div key={link.id || idx} className="bg-gray-50 rounded p-2 border border-gray-100">
-                                  <div className="font-semibold text-blue-700 text-xs mb-1">
-                                    {link.childTest?.name || 'Parameter'}
-                                  </div>
-                                  {link.childTest?.Parameter && link.childTest.Parameter.length > 0 && (
-                                    <div className="flex flex-wrap gap-2 text-xs">
-                                      {link.childTest.Parameter.map((param: any) => (
-                                        <span key={param.id} className="bg-green-100 px-2 py-1 rounded text-green-800">
-                                          {param.name}
-                                          {param.unit && (
-                                            <span className="ml-1 text-gray-500">({param.unit})</span>
-                                          )}
-                                          {param.referenceRange && (
-                                            <span className="ml-1 text-gray-400">[{param.referenceRange}]</span>
-                                          )}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
+                        {/* Show child parameters (consolidated) if no direct parameters */}
+                        {parameterNames.length === 0 && product.childLinks && product.childLinks.length > 0 && (() => {
+                          const childParams = (product.childLinks as any[])
+                            .flatMap((l: any) => (l.childTest?.Parameter || []));
+                          const childLabels = childParams.map((param: any) => `${param.name}${param.unit ? ` (${param.unit})` : ''}${param.referenceRange ? ` [${param.referenceRange}]` : ''}`);
+                          if (childLabels.length === 0) return null;
+                          return (
+                            <div className="mt-2 text-sm text-gray-600">
+                              <div className="font-medium mb-1 text-xs text-gray-500">Parameters</div>
+                              <div className="flex flex-wrap gap-2">
+                                {childLabels.slice(0, 2).map((label: string, idx: number) => (
+                                  <span key={idx} className="bg-green-50 px-2 py-1 rounded-full text-xs text-green-700">
+                                    {label}
+                                  </span>
+                                ))}
+                                {childLabels.length > 2 && (
+                                  <span className="bg-gray-50 px-2 py-1 rounded-full text-xs text-gray-600">+{childLabels.length - 2} more</span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        )}
+                          )
+                        })()}
                       </div>
                       <div className="p-4 mt-auto border-t border-blue-50 flex flex-row flex-wrap items-center justify-between gap-3">
                         <div>

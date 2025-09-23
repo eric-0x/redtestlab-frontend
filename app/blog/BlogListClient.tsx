@@ -137,8 +137,8 @@ export default function BlogListClient() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-12">
+    <div className="container-custom py-12">
+      <div>
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
@@ -171,56 +171,48 @@ export default function BlogListClient() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredBlogs.map((blog) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 pl-4">
+            {filteredBlogs.map((blog, idx) => (
               <article
                 key={blog.id}
-                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer"
-                onClick={() => handleBlogClick(blog)}
+                className={`bg-white rounded-lg shadow-md overflow-hidden transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg border border-sacred-gold cursor-pointer ${idx % 3 === 2 ? 'lg:mr-4' : ''}`}
               >
                 {/* Blog Image */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={blog.img || "/api/placeholder/400/200"}
-                    alt={blog.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 right-4">
-                    <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      <Clock className="inline w-4 h-4 mr-1" />
-                      {getReadingTime(blog.content)}
-                    </span>
+                <a href={`/blog/${blog.slug}`} onClick={(e) => { e.preventDefault(); handleBlogClick(blog); }}>
+                  <div className="relative h-54 w-full">
+                    <img
+                      src={blog.img || "/api/placeholder/400/200"}
+                      alt={blog.title}
+                      className="object-cover w-full h-full"
+                    />
                   </div>
-                </div>
+                </a>
 
                 {/* Blog Content */}
-                <div className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
-                    {blog.title}
-                  </h2>
-                  
-                  <p className="text-gray-600 mb-4 line-clamp-3">
+                <div className="p-5">
+                  <a href={`/blog/${blog.slug}`} onClick={(e) => { e.preventDefault(); handleBlogClick(blog); }}>
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 hover:text-sacred-maroon transition-colors line-clamp-2">
+                      {blog.title}
+                    </h3>
+                  </a>
+
+                  <p className="text-gray-600 text-sm line-clamp-2 mb-4">
                     {blog.description || truncateText(stripHtml(blog.content), 150)}
                   </p>
 
-                  {/* Meta Information */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <div className="flex items-center">
-                      <User className="w-4 h-4 mr-1" />
-                      {blog.author}
-                    </div>
-                    {blog.createdAt && (
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {formatDate(blog.createdAt)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Read More Button */}
-                  <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700 transition-colors duration-300">
-                    Read More
-                    <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform duration-300" />
+                  {/* Footer Row */}
+                  <div className="flex items-center justify-between">
+                    <a
+                      className="inline-flex items-center text-sacred-maroon hover:text-sacred-gold font-medium text-sm"
+                      href={`/blog/${blog.slug}`}
+                      onClick={(e) => { e.preventDefault(); handleBlogClick(blog); }}
+                    >
+                      Read More
+                      <ArrowRight className="h-4 w-4 ml-1" />
+                    </a>
+                    <span className="text-xs text-gray-500">
+                      {blog.createdAt ? formatDate(blog.createdAt) : getReadingTime(blog.content)}
+                    </span>
                   </div>
                 </div>
               </article>

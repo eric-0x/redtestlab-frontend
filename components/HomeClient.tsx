@@ -6,6 +6,7 @@ import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import CategoryShowcase from "@/components/CategoryShowcase";
 import HealthPackageCurosel from "@/components/HealthPackageCurosel";
+import HealthTestsCarousel from "@/components/HealthTestsCarousel";
 import ServiceFeatures from "@/components/ServiceFeatures";
 import WomenHealthPackages from "@/components/WomenHealthPackages";
 import CustomPackage from "@/components/CustomPackage";
@@ -35,6 +36,7 @@ export default function HomeClient() {
       <Hero />
       <CategoryShowcase />
       <HealthPackageCurosel />
+      <HealthTestsCarousel />
       <ServiceFeatures />
       <WomenHealthPackages />
       <CustomPackage />
