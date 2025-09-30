@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Search, FileText, Package, Mic, ChevronRight } from "lucide-react"
 import Link from "next/link" // Changed from react-router-dom
 import { useRouter } from "next/navigation" // Changed from react-router-dom
-import { fetchAccessToken } from "@/utils/googleToken"
+// Switch to server API route; no direct token fetching on client
 
 // Fix for the Speech Recognition interfaces
 declare global {
@@ -152,28 +152,20 @@ const HealthTestSearch = () => {
       if (abortRef.current) abortRef.current.abort()
       abortRef.current = new AbortController()
 
-      const token = await fetchAccessToken()
-
-      const res = await fetch(
-        "https://discoveryengine.googleapis.com/v1alpha/projects/1068518430509/locations/global/collections/default_collection/engines/redtestlab_1757135006647/servingConfigs/default_search:search",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          signal: abortRef.current.signal,
-          body: JSON.stringify({
-            query: query.trim(),
-            pageSize: 10,
-            queryExpansionSpec: { condition: "AUTO" },
-            spellCorrectionSpec: { mode: "AUTO" },
-            languageCode: "en-US",
-            safeSearch: true,
-            userInfo: { timeZone: "Asia/Calcutta" },
-          }),
-        },
-      )
+      const res = await fetch("/api/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        signal: abortRef.current.signal,
+        body: JSON.stringify({
+          query: query.trim(),
+          pageSize: 10,
+          queryExpansionSpec: { condition: "AUTO" },
+          spellCorrectionSpec: { mode: "AUTO" },
+          languageCode: "en-US",
+          safeSearch: true,
+          userInfo: { timeZone: "Asia/Calcutta" },
+        }),
+      })
 
       if (!res.ok) throw new Error("Search failed")
       const data = await res.json()
@@ -297,8 +289,8 @@ const HealthTestSearch = () => {
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter' && searchQuery.trim()) {
-                    handleSearch(searchQuery.trim())
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
                   }
                 }}
               />
@@ -311,7 +303,7 @@ const HealthTestSearch = () => {
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full mr-2 transition-colors duration-200 font-medium disabled:opacity-60"
                 onClick={() => searchQuery.trim() && fetchDiscoverySuggestions(searchQuery)}
-                disabled={!searchQuery.trim() || isSuggestLoading}
+                disabled={isSuggestLoading}
               >
                 {isSuggestLoading ? "Searching…" : "Search"}
               </button>
