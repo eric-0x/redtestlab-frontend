@@ -10,6 +10,8 @@
 !.yarn/releases
 !.yarn/versions
 
+/utils/splendid-watch-440103-j6-37a29fdded68.json
+
 # testing
 /coverage
 
