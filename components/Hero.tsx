@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react"
 import { Search, FileText, Package, Mic, ChevronRight } from "lucide-react"
 import Link from "next/link" // Changed from react-router-dom
 import { useRouter } from "next/navigation" // Changed from react-router-dom
+import { fetchAccessToken } from "@/utils/googleToken"
 
 // Fix for the Speech Recognition interfaces
 declare global {
@@ -64,9 +65,15 @@ const HealthTestSearch = () => {
   const [isRecording, setIsRecording] = useState(false)
   const [recordingText, setRecordingText] = useState("")
   const [showAnimation, setShowAnimation] = useState(false)
+  const [suggestions, setSuggestions] = useState<Array<{ id: string; title: string; link: string; displayLink?: string }>>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isSuggestLoading, setIsSuggestLoading] = useState(false)
   const router = useRouter() // Changed from useNavigate()
   const recognitionRef = useRef<SpeechRecognition | null>(null)
   const transcriptRef = useRef("") // Add a ref to store the latest transcript
+  const debounceRef = useRef<NodeJS.Timeout | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
+  const searchBoxRef = useRef<HTMLDivElement | null>(null)
 
   // Speech Recognition setup
   useEffect(() => {
@@ -136,6 +143,99 @@ const HealthTestSearch = () => {
     }
   }
 
+  // Shared Discovery Engine fetcher
+  const fetchDiscoverySuggestions = async (query: string) => {
+    try {
+      setIsSuggestLoading(true)
+      setShowSuggestions(true)
+      // Cancel any in-flight request
+      if (abortRef.current) abortRef.current.abort()
+      abortRef.current = new AbortController()
+
+      const token = await fetchAccessToken()
+
+      const res = await fetch(
+        "https://discoveryengine.googleapis.com/v1alpha/projects/1068518430509/locations/global/collections/default_collection/engines/redtestlab_1757135006647/servingConfigs/default_search:search",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          signal: abortRef.current.signal,
+          body: JSON.stringify({
+            query: query.trim(),
+            pageSize: 10,
+            queryExpansionSpec: { condition: "AUTO" },
+            spellCorrectionSpec: { mode: "AUTO" },
+            languageCode: "en-US",
+            safeSearch: true,
+            userInfo: { timeZone: "Asia/Calcutta" },
+          }),
+        },
+      )
+
+      if (!res.ok) throw new Error("Search failed")
+      const data = await res.json()
+      const items: Array<{ id: string; title: string; link: string; displayLink?: string }> = (data?.results || [])
+        .map((r: any) => {
+          const s = r?.document?.derivedStructData || {}
+          return {
+            id: r?.id || s.link || Math.random().toString(36).slice(2),
+            title: s.title || s.htmlTitle || "Untitled",
+            link: s.link || "#",
+            displayLink: s.displayLink,
+          }
+        })
+        .filter((i: any) => i.link)
+
+      setSuggestions(items)
+      setShowSuggestions(true)
+    } catch (e) {
+      setSuggestions([])
+      setShowSuggestions(false)
+    } finally {
+      setIsSuggestLoading(false)
+    }
+  }
+
+  // Debounced Discovery Engine search (1s)
+  useEffect(() => {
+    if (!searchQuery?.trim()) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      if (abortRef.current) abortRef.current.abort()
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      return
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(async () => {
+      fetchDiscoverySuggestions(searchQuery)
+    }, 1000)
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [searchQuery])
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent | TouchEvent) => {
+      if (!searchBoxRef.current) return
+      const target = e.target as Node
+      if (!searchBoxRef.current.contains(target)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener("mousedown", handleOutside)
+    document.addEventListener("touchstart", handleOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleOutside)
+      document.removeEventListener("touchstart", handleOutside)
+    }
+  }, [])
+
   return (
     <>
       <div className="w-full bg-gradient-to-r from-blue-900 to-blue-800 px-4 sm:px-8 py-4 sm:py-8 rounded-lg shadow-xl relative overflow-hidden overflow-x-hidden">
@@ -176,7 +276,7 @@ const HealthTestSearch = () => {
             </div>
           </div>
           {/* Search Bar with animation */}
-          <div className="relative mb-6 sm:mb-8 w-full px-0 sm:px-2">
+          <div ref={searchBoxRef} className="relative mb-6 sm:mb-8 w-full px-0 sm:px-2">
             <div
               className={`bg-white rounded-full shadow-lg overflow-hidden flex items-center transition-all duration-300 ${
                 isSearchFocused ? "ring-4 ring-blue-400" : ""
@@ -209,13 +309,51 @@ const HealthTestSearch = () => {
                 <Mic className="text-red-500" size={18} />
               </button>
               <button
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full mr-2 transition-colors duration-200 font-medium"
-                onClick={() => searchQuery.trim() && handleSearch(searchQuery.trim())}
-                disabled={!searchQuery.trim()}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full mr-2 transition-colors duration-200 font-medium disabled:opacity-60"
+                onClick={() => searchQuery.trim() && fetchDiscoverySuggestions(searchQuery)}
+                disabled={!searchQuery.trim() || isSuggestLoading}
               >
-                Search
+                {isSuggestLoading ? "Searching…" : "Search"}
               </button>
             </div>
+            {/* Suggestions Popover */}
+            {showSuggestions && (isSearchFocused || suggestions.length > 0) && (
+              <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 overflow-hidden z-20">
+                <div className="max-h-80 overflow-y-auto">
+                  {isSuggestLoading && (
+                    <div className="p-4 text-sm text-gray-600"></div>
+                  )}
+                  {!isSuggestLoading && suggestions.length === 0 && (
+                    <div className="p-4 text-sm text-gray-600">No results</div>
+                  )}
+                  {!isSuggestLoading &&
+                    suggestions.map((s) => (
+                      <button
+                        key={s.id}
+                        className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-start gap-3"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                          setShowSuggestions(false)
+                          setIsSearchFocused(false)
+                          if (s.link?.startsWith("http")) {
+                            router.push(s.link.replace("https://www.redtestlab.com", ""))
+                          } else {
+                            router.push(s.link || "/")
+                          }
+                        }}
+                      >
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900 line-clamp-2">{s.title}</div>
+                          {s.displayLink && (
+                            <div className="text-xs text-gray-500 mt-0.5">{s.displayLink}</div>
+                          )}
+                          <div className="text-xs text-blue-600 mt-0.5 break-all">{s.link}</div>
+                        </div>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
           {/* Option Cards with hover effects */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8 w-full">
