@@ -1267,7 +1267,7 @@ const ScanListing: React.FC = () => {
                     >
                       {bookingLoading
                         ? "Processing..."
-                        : `Confirm - ₹${selectedScan.discountedPrice || selectedScan.price}`}
+                        : `Confirm`}
                     </button>
                   </div>
                 </div>
