@@ -646,11 +646,25 @@ const ScanListing: React.FC = () => {
           </Head>
         )}
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-600 text-lg">
-              {locationActive ? "Finding labs near you..." : "Loading available tests..."}
+          <div className="text-center max-w-md mx-auto">
+            <div className="relative mb-8">
+              <div className="w-20 h-20 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+              <div className="absolute inset-0 w-20 h-20 border-4 border-transparent border-t-blue-300 rounded-full animate-spin mx-auto" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            </div>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">
+              {locationActive ? "Finding Labs Near You" : "Loading Available Tests"}
+            </h3>
+            <p className="text-gray-600 mb-6">
+              {locationActive 
+                ? "Searching for the best labs in your area" 
+                : "Fetching the latest test options"
+              }
             </p>
+            <div className="flex items-center justify-center space-x-2">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce"></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+            </div>
           </div>
         </div>
       </>
@@ -697,24 +711,24 @@ const ScanListing: React.FC = () => {
           </Head>
         )}
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-          <div className="text-center max-w-md">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <X className="w-8 h-8 text-red-600" />
+          <div className="text-center max-w-lg mx-auto bg-white rounded-2xl shadow-sm p-8">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <X className="w-10 h-10 text-red-500" />
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
-            <p className="text-gray-600 mb-6">{error}</p>
-            <div className="space-y-3">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-2">Something went wrong</h3>
+            <p className="text-gray-600 mb-8">{error}</p>
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
                 onClick={fetchScans}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="flex-1 bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 Try Again
               </button>
               <button
-                onClick={() => router.push("/")}
-                className="w-full bg-gray-200 text-gray-800 py-3 px-6 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                onClick={() => router.push("/scans")}
+                className="flex-1 bg-gray-100 text-gray-700 py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors font-medium"
               >
-                Go Back
+                Back to Scans
               </button>
             </div>
           </div>
@@ -772,41 +786,38 @@ const ScanListing: React.FC = () => {
         </Head>
       )}
 
-      <div className="min-h-screen bg-gray-50">
-        {/* Enhanced Header */}
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/20">
+        {/* Professional Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm backdrop-blur-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-4">
-              <div className="flex items-center">
+            <div className="flex items-center justify-between py-4 md:py-5">
+              <div className="flex items-center space-x-3 md:space-x-5">
                 <button
-                  onClick={() => router.push("/")}
-                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors mr-6 p-2 rounded-lg hover:bg-gray-100"
+                  onClick={() => router.push("/scans")}
+                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors group p-1.5 rounded-lg hover:bg-gray-100/60"
                 >
-                  <ChevronLeft className="w-5 h-5 mr-1" />
-                  <span className="font-medium">Back</span>
+                  <ChevronLeft className="w-5 h-5 mr-1 group-hover:-translate-x-0.5 transition-transform" />
+                  <span className="font-medium hidden sm:inline">Back</span>
                 </button>
+                <div className="h-6 w-px bg-gray-300 hidden sm:block"></div>
                 <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                  <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-blue-700">
                       {selectedCategory?.name || "Medical"} Tests
                     </h1>
                     {locationActive && (
-                      <div className="flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
-                        <Target className="w-4 h-4 mr-1" />
+                      <span className="flex items-center px-2 sm:px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm font-medium border border-green-100">
+                        <Target className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5" />
                         <span className="hidden sm:inline">Location Active</span>
                         <span className="sm:hidden">GPS</span>
-                      </div>
+                      </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-gray-600">
-                    <span className="flex items-center">
-                      <Building2 className="w-4 h-4 mr-1" />
-                      {filteredScans.length} tests available
-                    </span>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600 mt-1">
                     {locationActive && userLocation && (
                       <span className="flex items-center text-blue-600">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        Within {locationFilter.radius}km
+                        <MapPin className="w-4 h-4 mr-1.5" />
+                        <span className="font-medium">{locationFilter.radius}km</span> radius
                       </span>
                     )}
                   </div>
@@ -817,169 +828,6 @@ const ScanListing: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Enhanced Search and Filters */}
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 mb-6 overflow-hidden">
-            {/* Search Section */}
-            <div className="p-6 border-b border-gray-100">
-              <div className="relative">
-                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Search labs, tests, or locations..."
-                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 placeholder-gray-500 text-lg"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Filter Controls */}
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-                  <SlidersHorizontal className="w-5 h-5 mr-2" /> Filters & Sorting
-                </h3>
-                {(searchQuery || locationActive || locationFilter.city || locationFilter.state) && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Clear All
-                  </button>
-                )}
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Sort Dropdown */}
-                <div className="relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sort By</label>
-                  <div className="relative">
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as "price" | "rating" | "distance")}
-                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none pr-10"
-                    >
-                      <option value="price">Price (Low to High)</option>
-                      <option value="rating">Verified First</option>
-                      <option value="distance">Distance</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-
-                {/* Location Toggle */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
-                  <button
-                    onClick={getCurrentLocation}
-                    className={`w-full flex items-center justify-center px-4 py-3 rounded-xl transition-all duration-300 font-medium border-2 ${
-                      locationActive
-                        ? "bg-green-600 text-white border-green-600 hover:bg-green-700"
-                        : "bg-blue-600 text-white border-blue-600 hover:bg-blue-700"
-                    }`}
-                  >
-                    {locationActive ? (
-                      <>
-                        <MapPinOff className="w-5 h-5 mr-2" />
-                        <span className="hidden sm:inline">Disable GPS</span>
-                        <span className="sm:hidden">GPS Off</span>
-                      </>
-                    ) : (
-                      <>
-                        <Navigation className="w-5 h-5 mr-2" />
-                        <span className="hidden sm:inline">Near Me</span>
-                        <span className="sm:hidden">GPS</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Advanced Filters Toggle */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">More Filters</label>
-                  <button
-                    onClick={() => setShowLocationFilter(!showLocationFilter)}
-                    className="w-full flex items-center justify-center px-4 py-3 border-2 border-gray-300 rounded-xl hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    <Filter className="w-5 h-5 mr-2" />
-                    <span>Advanced</span>
-                    <ChevronDown
-                      className={`w-4 h-4 ml-2 transition-transform ${showLocationFilter ? "rotate-180" : ""}`}
-                    />
-                  </button>
-                </div>
-
-                {/* Radius Selector (only when location is active) */}
-                {locationActive && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Search Radius</label>
-                    <div className="relative">
-                      <select
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white appearance-none pr-10"
-                        value={locationFilter.radius}
-                        onChange={(e) =>
-                          setLocationFilter((prev) => ({ ...prev, radius: Number.parseInt(e.target.value) }))
-                        }
-                      >
-                        <option value={5}>Within 5 km</option>
-                        <option value={10}>Within 10 km</option>
-                        <option value={25}>Within 25 km</option>
-                        <option value={50}>Within 50 km</option>
-                      </select>
-                      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Advanced Location Filter Panel */}
-              {showLocationFilter && (
-                <div className="mt-6 p-6 bg-gray-50 rounded-xl border border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-4 flex items-center">
-                    <MapPin className="w-5 h-5 mr-2" /> Filter by City/State
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                      <input
-                        type="text"
-                        placeholder="Enter city name"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        value={locationFilter.city}
-                        onChange={(e) => setLocationFilter((prev) => ({ ...prev, city: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
-                      <input
-                        type="text"
-                        placeholder="Enter state name"
-                        className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        value={locationFilter.state}
-                        onChange={(e) => setLocationFilter((prev) => ({ ...prev, state: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex gap-3 mt-4">
-                    <button
-                      onClick={fetchScans}
-                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
-                    >
-                      Apply Filters
-                    </button>
-                    <button
-                      onClick={() => {
-                        setLocationFilter((prev) => ({ ...prev, city: "", state: "" }))
-                      }}
-                      className="px-6 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
           {/* Active Filters Display */}
           {(searchQuery || locationActive || locationFilter.city || locationFilter.state) && (
@@ -987,46 +835,46 @@ const ScanListing: React.FC = () => {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">Active filters:</span>
                 {searchQuery && (
-                  <span className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                  <span className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
                     Search: "{searchQuery}"
-                    <button onClick={() => setSearchQuery("")} className="ml-2 hover:text-blue-600">
-                      <X className="w-3 h-3" />
+                    <button onClick={() => setSearchQuery("")} className="ml-2 hover:text-blue-900">
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 )}
                 {locationActive && (
-                  <span className="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                  <span className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
                     GPS Location ({locationFilter.radius}km)
                     <button
                       onClick={() => {
                         setLocationActive(false)
                         setUserLocation(null)
                       }}
-                      className="ml-2 hover:text-green-600"
+                      className="ml-2 hover:text-green-900"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 )}
                 {locationFilter.city && (
-                  <span className="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                  <span className="inline-flex items-center px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium">
                     City: {locationFilter.city}
                     <button
                       onClick={() => setLocationFilter((prev) => ({ ...prev, city: "" }))}
-                      className="ml-2 hover:text-purple-600"
+                      className="ml-2 hover:text-purple-900"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 )}
                 {locationFilter.state && (
-                  <span className="inline-flex items-center px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm">
+                  <span className="inline-flex items-center px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
                     State: {locationFilter.state}
                     <button
                       onClick={() => setLocationFilter((prev) => ({ ...prev, state: "" }))}
-                      className="ml-2 hover:text-orange-600"
+                      className="ml-2 hover:text-orange-900"
                     >
-                      <X className="w-3 h-3" />
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   </span>
                 )}
@@ -1034,37 +882,23 @@ const ScanListing: React.FC = () => {
             </div>
           )}
 
-          {/* Results */}
+          {/* Results Section */}
           {filteredScans.length === 0 ? (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-gray-400" />
+            <div className="bg-white rounded-xl shadow-md border border-gray-100 p-8 sm:p-12 text-center">
+              <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                <Search className="w-10 h-10 text-blue-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">No tests found</h3>
-              <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                {locationActive
-                  ? `No tests found within ${locationFilter.radius}km of your location with valid coordinates. Try expanding your search radius or disabling GPS.`
-                  : "No tests found matching your criteria. Try adjusting your filters."}
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <h3 className="text-xl font-bold text-gray-900 mb-3">No Tests Found</h3>
+              <p className="text-gray-600 mb-8 max-w-md mx-auto">Try adjusting your filters or search criteria to find available tests in this category</p>
                 <button
                   onClick={clearAllFilters}
-                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-sm hover:shadow hover:scale-105 active:scale-95"
                 >
                   Clear All Filters
                 </button>
-                {!locationActive && (
-                  <button
-                    onClick={getCurrentLocation}
-                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
-                  >
-                    Find Labs Near Me
-                  </button>
-                )}
-              </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {filteredScans.map((scan) => {
                 const distance =
                   locationActive && userLocation && scan.scanCenter.latitude && scan.scanCenter.longitude
@@ -1084,101 +918,115 @@ const ScanListing: React.FC = () => {
                 return (
                   <div
                     key={scan.id}
-                    className="bg-white rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow h-full"
+                    className="group bg-white rounded-xl shadow-md border border-gray-100 hover:shadow-lg transition-all duration-300 overflow-hidden hover:border-blue-100 hover:-translate-y-1"
                   >
-                    <div className="p-4 sm:p-6 h-full flex flex-col">
-                      {/* Header */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4 flex-1">
-                        <div className="flex-1">
-                          <div className="flex items-start justify-between mb-3">
-                            <div>
-                              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-1">{scan.title}</h3>
-                              <div className="flex items-center text-gray-600 mb-2">
-                                <Building2 className="w-4 h-4 mr-2 text-blue-600" />
-                                <span className="font-medium">{scan.scanCenter.name}</span>
-                                <span
-                                  className={`ml-3 px-2 py-1 rounded-full text-xs font-medium ${
-                                    scan.scanCenter.type === "HOSPITAL"
-                                      ? "bg-blue-100 text-blue-800"
-                                      : scan.scanCenter.type === "CLINIC"
-                                        ? "bg-green-100 text-green-800"
-                                        : "bg-purple-100 text-purple-800"
-                                  }`}
-                                >
-                                  {scan.scanCenter.type}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex flex-col items-end gap-2 ml-4">
-                              {scan.isVerified && (
-                                <div className="flex items-center px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-                                  <CheckCircle className="w-4 h-4 mr-1" />
-                                  <span>Verified</span>
-                                </div>
-                              )}
-                              {discountPercentage > 0 && (
-                                <div className="px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm font-medium">
-                                  {discountPercentage}% OFF
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center text-gray-600 mb-3">
-                            <MapPin className="w-4 h-4 mr-2 text-gray-400" />
-                            <span className="text-sm">
-                              {scan.scanCenter.address}, {scan.scanCenter.city}, {scan.scanCenter.state}
+                    <div className="p-4 sm:p-6">
+                      {/* Header with badges */}
+                      <div className="flex items-start justify-between mb-3 sm:mb-4">
+                        <div className="flex-1 pr-3">
+                          <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors line-clamp-2">
+                            {scan.title}
+                          </h3>
+                          <div className="flex items-center flex-wrap gap-2 text-sm">
+                            <span className="flex items-center text-gray-700 font-medium">
+                              <Building2 className="w-4 h-4 mr-1.5 text-blue-600" />
+                              <span className="line-clamp-1">{scan.scanCenter.name}</span>
                             </span>
-                            {distance && (
-                              <span className="ml-3 px-2 py-1 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium">
-                                {distance.toFixed(1)}km away
-                              </span>
-                            )}
-                          </div>
-                          {scan.description && (
-                            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{scan.description}</p>
-                          )}
-                          {/* Test Details */}
-                          <div className="flex flex-wrap gap-4 text-sm">
-                            {scan.waitTime && (
-                              <div className="flex items-center text-gray-600">
-                                <Timer className="w-4 h-4 mr-2 text-blue-600" />
-                                <span>{scan.waitTime}</span>
-                              </div>
-                            )}
-                            {scan.reportTimeEstimate && (
-                              <div className="flex items-center text-gray-600">
-                                <FileText className="w-4 h-4 mr-2 text-green-600" />
-                                <span>Report in {scan.reportTimeEstimate}</span>
-                              </div>
-                            )}
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                scan.scanCenter.type === "HOSPITAL"
+                                  ? "bg-blue-50 text-blue-700 border border-blue-100"
+                                  : scan.scanCenter.type === "CLINIC"
+                                    ? "bg-green-50 text-green-700 border border-green-100"
+                                    : "bg-purple-50 text-purple-700 border border-purple-100"
+                              }`}
+                            >
+                              {scan.scanCenter.type}
+                            </span>
                           </div>
                         </div>
-                        {/* Price and Action */}
-                        <div className="mt-2 sm:mt-0 sm:ml-6 sm:w-48 flex-shrink-0 self-stretch flex flex-col justify-between">
-                          <div className="text-center sm:text-right">
-                            <div className="mb-4">
-                              <div className="flex items-center justify-center sm:justify-end gap-2 mb-1">
-                                <span className="text-2xl sm:text-3xl font-bold text-gray-900">₹{finalPrice}</span>
-                                {scan.discountedPrice && (
-                                  <span className="text-lg text-gray-500 line-through">₹{originalPrice}</span>
-                                )}
-                              </div>
-                              {discountPercentage > 0 && (
-                                <p className="text-green-600 font-medium text-sm">Save ₹{originalPrice - finalPrice}</p>
+                        <div className="flex flex-col items-end gap-2">
+                          {scan.isVerified && (
+                            <span className="flex items-center px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                              Verified
+                            </span>
+                          )}
+                          {discountPercentage > 0 && (
+                            <span className="flex items-center px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full text-xs font-medium border border-orange-100">
+                              {discountPercentage}% OFF
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Location */}
+                      <div className="flex items-start text-sm text-gray-600 mb-3">
+                        <MapPin className="w-4 h-4 mr-2 mt-0.5 text-gray-400 flex-shrink-0" />
+                        <span className="flex-1 line-clamp-2">
+                          {scan.scanCenter.address}, {scan.scanCenter.city}
+                        </span>
+                        {distance && (
+                          <span className="ml-2 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium whitespace-nowrap border border-blue-100">
+                            {distance.toFixed(1)}km
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Description - only show on larger screens */}
+                      {scan.description && (
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2 hidden sm:block">{scan.description}</p>
+                      )}
+
+                      {/* Test Details */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {scan.waitTime && (
+                          <div className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 sm:px-3 py-1 rounded-lg border border-gray-100">
+                            <Timer className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-blue-600" />
+                            <span>{scan.waitTime}</span>
+                          </div>
+                        )}
+                        {scan.reportTimeEstimate && (
+                          <div className="flex items-center text-xs text-gray-600 bg-gray-50 px-2 sm:px-3 py-1 rounded-lg border border-gray-100">
+                            <FileText className="w-3 h-3 sm:w-3.5 sm:h-3.5 mr-1 sm:mr-1.5 text-green-600" />
+                            <span>Report in {scan.reportTimeEstimate}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Price and CTA */}
+                      <div className="pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl sm:text-2xl font-bold text-gray-900">₹{finalPrice}</span>
+                              {scan.discountedPrice && (
+                                <span className="text-xs sm:text-sm text-gray-500 line-through">₹{originalPrice}</span>
                               )}
                             </div>
-                            <button
-                              onClick={() => handleBookNow(scan)}
-                              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors shadow-sm"
-                            >
-                              Book Now
-                            </button>
-                            <div className="mt-3 space-y-1 text-xs text-gray-500">
-                              <p>✓ Instant confirmation</p>
-                              <p>✓ Digital reports</p>
-                              <p>✓ Free cancellation</p>
-                            </div>
+                            {discountPercentage > 0 && (
+                              <p className="text-xs text-green-600 font-medium mt-0.5">
+                                Save ₹{originalPrice - finalPrice}
+                              </p>
+                            )}
                           </div>
+                          <button
+                            onClick={() => handleBookNow(scan)}
+                            className="px-4 sm:px-5 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow hover:scale-105 active:scale-95"
+                          >
+                            Book Now
+                          </button>
+                        </div>
+                        
+                        <div className="flex items-center justify-center gap-3 sm:gap-4 text-xs text-gray-500 mt-3">
+                          <span className="flex items-center">
+                            <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                            <span className="hidden sm:inline">Instant</span> confirmation
+                          </span>
+                          <span className="flex items-center">
+                            <CheckCircle className="w-3 h-3 mr-1 text-green-500" />
+                            Digital reports
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -1189,136 +1037,176 @@ const ScanListing: React.FC = () => {
           )}
         </div>
 
-        {/* Booking Modal */}
+        {/* Professional Booking Modal */}
         {showBookingModal && selectedScan && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-900">Book Your Test</h2>
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto animate-fadeIn animate-slideUp">
+              {/* Header - Sticky on mobile */}
+              <div className="sticky top-0 z-10 flex items-center justify-between p-4 sm:p-6 border-b border-gray-200 bg-white">
+                <div>
+                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">Book Your Test</h2>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-0.5">Complete your booking details</p>
+                </div>
                 <button
                   onClick={() => {
                     setShowBookingModal(false)
                     setBookingError(null)
                   }}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                  aria-label="Close booking form"
                 >
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 text-gray-500" />
                 </button>
               </div>
 
               {/* Selected Test Info */}
-              <div className="p-6 bg-blue-50 border-b border-gray-200">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">{selectedScan.title}</h3>
-                    <p className="text-gray-600 flex items-center mb-2">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      {selectedScan.scanCenter.name}, {selectedScan.scanCenter.city}
-                    </p>
-                    {selectedScan.waitTime && (
-                      <p className="text-gray-600 flex items-center">
-                        <Clock className="w-4 h-4 mr-2" />
-                        {selectedScan.waitTime}
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-blue-50 to-indigo-50/50 border-b border-gray-200">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
+                  <div className="flex-1">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 sm:mb-3">{selectedScan.title}</h3>
+                    <div className="space-y-1.5">
+                      <p className="text-xs sm:text-sm text-gray-700 flex items-center">
+                        <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-blue-600 flex-shrink-0" />
+                        <span className="line-clamp-1">{selectedScan.scanCenter.name}, {selectedScan.scanCenter.city}</span>
                       </p>
-                    )}
+                      {selectedScan.waitTime && (
+                        <p className="text-xs sm:text-sm text-gray-700 flex items-center">
+                          <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-green-600 flex-shrink-0" />
+                          {selectedScan.waitTime}
+                        </p>
+                      )}
+                      {selectedScan.reportTimeEstimate && (
+                        <p className="text-xs sm:text-sm text-gray-700 flex items-center">
+                          <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-1.5 sm:mr-2 text-purple-600 flex-shrink-0" />
+                          Report in {selectedScan.reportTimeEstimate}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    {selectedScan.discountedPrice ? (
-                      <div>
-                        <span className="text-2xl font-bold text-gray-900">₹{selectedScan.discountedPrice}</span>
-                        <span className="text-lg text-gray-500 line-through ml-2">₹{selectedScan.price}</span>
+                  <div className="flex items-center justify-between sm:justify-end sm:flex-col sm:items-end gap-2 sm:gap-1 mt-2 sm:mt-0">
+                    <div>
+                      {selectedScan.discountedPrice ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-lg sm:text-2xl font-bold text-gray-900">₹{selectedScan.discountedPrice}</span>
+                          <span className="text-xs sm:text-sm text-gray-500 line-through">₹{selectedScan.price}</span>
+                        </div>
+                      ) : (
+                        <span className="text-lg sm:text-2xl font-bold text-gray-900">₹{selectedScan.price}</span>
+                      )}
+                      {selectedScan.discountedPrice && (
+                        <p className="text-xs text-green-600 font-medium hidden sm:block">
+                          Save ₹{selectedScan.price - selectedScan.discountedPrice}
+                        </p>
+                      )}
+                    </div>
+                    {selectedScan.isVerified && (
+                      <div className="flex items-center px-2 py-1 bg-green-50 text-green-700 rounded-full text-xs font-medium border border-green-100">
+                        <Shield className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                        <span>Verified Lab</span>
                       </div>
-                    ) : (
-                      <span className="text-2xl font-bold text-gray-900">₹{selectedScan.price}</span>
                     )}
                   </div>
                 </div>
-                {selectedScan.isVerified && (
-                  <div className="flex items-center text-green-700">
-                    <Shield className="w-4 h-4 mr-2" />
-                    <span className="text-sm font-medium">Verified Lab</span>
-                  </div>
-                )}
               </div>
 
               {/* Booking Form */}
-              <form onSubmit={handleBookingSubmit} className="p-6 space-y-6">
+              <form onSubmit={handleBookingSubmit} className="p-4 sm:p-6 space-y-4 sm:space-y-5">
                 {bookingError && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <p className="text-red-700">{bookingError}</p>
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 mb-2">
+                    <p className="text-xs sm:text-sm text-red-700 font-medium">{bookingError}</p>
                   </div>
                 )}
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <User className="w-4 h-4 inline mr-2" /> Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={bookingForm.name}
-                    onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
-                    placeholder="Enter your full name"
-                  />
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                      Full Name *
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        required
+                        className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm"
+                        value={bookingForm.name}
+                        onChange={(e) => setBookingForm({ ...bookingForm, name: e.target.value })}
+                        placeholder="Enter your full name"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                      Mobile Number *
+                    </label>
+                    <div className="relative">
+                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="tel"
+                        required
+                        className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm"
+                        value={bookingForm.phoneNumber}
+                        onChange={(e) => setBookingForm({ ...bookingForm, phoneNumber: e.target.value })}
+                        placeholder="Enter mobile number"
+                      />
+                    </div>
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Phone className="w-4 h-4 inline mr-2" /> Mobile Number *
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                    Your Location *
                   </label>
-                  <input
-                    type="tel"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={bookingForm.phoneNumber}
-                    onChange={(e) => setBookingForm({ ...bookingForm, phoneNumber: e.target.value })}
-                    placeholder="Enter your mobile number"
-                  />
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <input
+                      type="text"
+                      required
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm"
+                      value={bookingForm.location}
+                      onChange={(e) => setBookingForm({ ...bookingForm, location: e.target.value })}
+                      placeholder="Enter complete address"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 inline mr-2" /> Your Location *
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">
+                    Preferred Time
                   </label>
-                  <input
-                    type="text"
-                    required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    value={bookingForm.location}
-                    onChange={(e) => setBookingForm({ ...bookingForm, location: e.target.value })}
-                    placeholder="Enter your address"
-                  />
+                  <div className="relative">
+                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <select
+                      className="w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm appearance-none"
+                      value={bookingForm.preferredTime}
+                      onChange={(e) => setBookingForm({ ...bookingForm, preferredTime: e.target.value })}
+                    >
+                      <option value="">Select preferred time</option>
+                      <option value="morning">Morning (9 AM - 12 PM)</option>
+                      <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
+                      <option value="evening">Evening (4 PM - 7 PM)</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                  </div>
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    <Calendar className="w-4 h-4 inline mr-2" /> Preferred Time
-                  </label>
-                  <select
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
-                    value={bookingForm.preferredTime}
-                    onChange={(e) => setBookingForm({ ...bookingForm, preferredTime: e.target.value })}
-                  >
-                    <option value="">Select preferred time</option>
-                    <option value="morning">Morning (9 AM - 12 PM)</option>
-                    <option value="afternoon">Afternoon (12 PM - 4 PM)</option>
-                    <option value="evening">Evening (4 PM - 7 PM)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Notes</label>
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5">Additional Notes</label>
                   <textarea
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 text-sm resize-none"
+                    rows={2}
                     value={bookingForm.notes}
                     onChange={(e) => setBookingForm({ ...bookingForm, notes: e.target.value })}
-                    placeholder="Any special notes (e.g., diabetic, pregnant, etc.)"
+                    placeholder="Special notes (e.g., diabetic, pregnant, fasting)"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-4">
-                    <CreditCard className="w-4 h-4 inline mr-2" /> Payment Method *
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+                    Payment Method *
                   </label>
-                  <div className="space-y-3">
-                    <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className="relative flex items-center p-3 sm:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/50">
                       <input
                         type="radio"
                         name="payment"
@@ -1330,14 +1218,14 @@ const ScanListing: React.FC = () => {
                             paymentMethod: e.target.value as "online" | "cod",
                           })
                         }
-                        className="mr-3"
+                        className="mr-2 sm:mr-3 w-4 h-4 text-blue-600"
                       />
-                      <div>
-                        <div className="font-semibold">Pay Online</div>
-                        <div className="text-sm text-gray-500">Secure payment via UPI, Card, or Net Banking</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">Pay Online</div>
+                        <div className="text-xs text-gray-600 mt-0.5">UPI, Card, Net Banking</div>
                       </div>
                     </label>
-                    <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <label className="relative flex items-center p-3 sm:p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-all duration-200 has-[:checked]:border-blue-500 has-[:checked]:bg-blue-50/50">
                       <input
                         type="radio"
                         name="payment"
@@ -1349,35 +1237,39 @@ const ScanListing: React.FC = () => {
                             paymentMethod: e.target.value as "online" | "cod",
                           })
                         }
-                        className="mr-3"
+                        className="mr-2 sm:mr-3 w-4 h-4 text-blue-600"
                       />
-                      <div>
-                        <div className="font-semibold">Pay at Lab</div>
-                        <div className="text-sm text-gray-500">Pay directly at the lab during your visit</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 text-sm">Pay at Lab</div>
+                        <div className="text-xs text-gray-600 mt-0.5">Pay during your visit</div>
                       </div>
                     </label>
                   </div>
                 </div>
-                <div className="flex gap-4 pt-4">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowBookingModal(false)
-                      setBookingError(null)
-                    }}
-                    className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={bookingLoading}
-                    className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50"
-                  >
-                    {bookingLoading
-                      ? "Processing..."
-                      : `Confirm Booking - ₹${selectedScan.discountedPrice || selectedScan.price}`}
-                  </button>
+
+                {/* Fixed bottom action buttons on mobile */}
+                <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-3 sm:p-0 sm:border-0 sm:bg-transparent mt-4 sm:mt-6 -mx-4 sm:mx-0">
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowBookingModal(false)
+                        setBookingError(null)
+                      }}
+                      className="flex-1 px-4 sm:px-6 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={bookingLoading}
+                      className="flex-1 px-4 sm:px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                      {bookingLoading
+                        ? "Processing..."
+                        : `Confirm`}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
