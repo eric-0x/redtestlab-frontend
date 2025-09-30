@@ -304,7 +304,7 @@ const EnhancedHospitalHeader = () => {
                 </div>
               </div>
               {/* Scan Tests */}
-              <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/test")}>
+              <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/scans")}>
                 <Camera className="text-purple-500 mr-3 h-4 w-4" />
                 <div>
                   <div className="font-medium text-gray-900">Scan Tests</div>
@@ -475,7 +475,7 @@ const EnhancedHospitalHeader = () => {
                     </div>
                     <div
                       className="px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700 font-medium transition-colors duration-200 flex items-center"
-                      onClick={() => router.push("/test")}
+                      onClick={() => router.push("/scans")}
                     >
                       <Camera className="text-purple-500 mr-2 h-4 w-4" />
                       Scan Tests
