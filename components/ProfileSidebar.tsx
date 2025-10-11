@@ -286,7 +286,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
       const token = localStorage.getItem("userToken")
       if (!token) return
 
-      const response = await fetch("https://redtestlab.com/api/users/profile", {
+      const response = await fetch("https://redtestlab.com/api/user/profile", {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -316,7 +316,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
       // Only send name and email, not password
       const { password, ...profileData } = formData
       
-      const response = await fetch("https://redtestlab.com/api/users/profile", {
+      const response = await fetch("https://redtestlab.com/api/user/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -384,7 +384,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
     setNotification({ show: false, message: "", type: "success" })
 
     try {
-      const response = await fetch("https://redtestlab.com/api/users/reset-password-request", {
+      const response = await fetch("https://redtestlab.com/api/user/reset-password-request", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -448,7 +448,7 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
     setNotification({ show: false, message: "", type: "success" })
 
     try {
-      const response = await fetch("https://redtestlab.com/api/users/reset-password", {
+      const response = await fetch("https://redtestlab.com/api/user/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
