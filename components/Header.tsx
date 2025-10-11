@@ -288,13 +288,13 @@ const EnhancedHospitalHeader = () => {
                 </div>
               </div>
               {/* Top Hospital */}
-              <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/hospital")}>
+              {/* <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/hospital")}>
                 <Users className="text-green-500 mr-3 h-4 w-4" />
                 <div>
                   <div className="font-medium text-gray-900">Top Hospital</div>
                   <div className="text-xs text-gray-500">Consult with specialists</div>
                 </div>
-              </div>
+              </div> */}
               {/* Blood Tests */}
               <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/test")}>
                 <Droplet className="text-red-500 mr-3 h-4 w-4" />
@@ -304,13 +304,13 @@ const EnhancedHospitalHeader = () => {
                 </div>
               </div>
               {/* Scan Tests */}
-              <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/scans")}>
+              {/* <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/scans")}>
                 <Camera className="text-purple-500 mr-3 h-4 w-4" />
                 <div>
                   <div className="font-medium text-gray-900">Scan Tests</div>
                   <div className="text-xs text-gray-500">X-Ray, MRI, CT scans</div>
                 </div>
-              </div>
+              </div> */}
               {/* Blog */}
               <div className="px-4 py-3 hover:bg-gray-50 flex items-center" onClick={() => router.push("/blog")}>
                 <BookOpen className="text-indigo-500 mr-3 h-4 w-4" />
@@ -451,13 +451,13 @@ const EnhancedHospitalHeader = () => {
                       <Search className="text-blue-500 mr-2 h-4 w-4" />
                       Find a Test
                     </div>
-                    <div
+                    {/* <div
                       className="px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700 font-medium transition-colors duration-200 flex items-center"
                       onClick={() => router.push("/hospital")}
                     >
                       <Users className="text-green-500 mr-2 h-4 w-4" />
                       Top Hospital
-                    </div>
+                    </div> */}
                   </div>
                 </div>
                 {/* Tests Column */}
@@ -473,13 +473,13 @@ const EnhancedHospitalHeader = () => {
                       <Droplet className="text-red-500 mr-2 h-4 w-4" />
                       Blood Tests
                     </div>
-                    <div
+                    {/* <div
                       className="px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700 font-medium transition-colors duration-200 flex items-center"
                       onClick={() => router.push("/scans")}
                     >
                       <Camera className="text-purple-500 mr-2 h-4 w-4" />
                       Scan Tests
-                    </div>
+                    </div> */}
                     <div
                       className="px-3 py-2 hover:bg-gray-50 rounded-md cursor-pointer text-gray-700 font-medium transition-colors duration-200 flex items-center"
                       onClick={() => router.push("/blog")}
