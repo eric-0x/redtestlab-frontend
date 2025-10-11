@@ -80,7 +80,7 @@ export default function HelpAndSupport() {
               <Phone className="w-5 h-5 text-blue-600 mr-3" />
               <div>
                 <div className="text-gray-500">Call</div>
-                <div className="font-semibold text-lg">898 898 8787</div>
+                <div className="font-semibold text-lg">+91-8804789764</div>
               </div>
             </div>
           </div>
@@ -285,7 +285,7 @@ export default function HelpAndSupport() {
               <div className="mt-2 space-y-2">
                 <div className="flex items-center">
                   <Phone className="w-4 h-4 text-blue-600 mr-2" />
-                  <span>898 898 8787</span>
+                  <span>+91-8804789764</span>
                 </div>
                 <div className="flex items-center">
                   <Mail className="w-4 h-4 text-blue-600 mr-2" />

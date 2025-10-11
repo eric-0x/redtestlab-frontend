@@ -1,6 +1,11 @@
-import { Users, TrendingUp, Calendar, Home, Clock, CreditCard, Shield, Zap, Building2, Stethoscope, FlaskConical, Smartphone, Mail, Phone, CheckCircle, Star } from 'lucide-react'
+"use client"
+
+import { Users, TrendingUp, Calendar, Home, Clock, CreditCard, Shield, Zap, Building2, Stethoscope, FlaskConical, Smartphone, Mail, Phone, CheckCircle, Star, Truck } from 'lucide-react'
+import { useState } from 'react'
+import DeliveryBoyForm from './DeliveryBoyForm'
 
 const Partner = () => {
+  const [showDeliveryForm, setShowDeliveryForm] = useState(false)
   const partnerTypes = [
     {
       icon: <FlaskConical className="w-8 h-8" />,
@@ -29,6 +34,13 @@ const Partner = () => {
       description: "Integrate our APIs to offer lab test booking and health report access.",
       bgColor: "bg-orange-50",
       iconColor: "text-orange-600"
+    },
+    {
+      icon: <Truck className="w-8 h-8" />,
+      title: "Delivery Partners",
+      description: "Join our delivery team and help us provide excellent home collection services.",
+      bgColor: "bg-teal-50",
+      iconColor: "text-teal-600"
     }
   ]
 
@@ -192,28 +204,57 @@ const Partner = () => {
               <Mail className="w-8 h-8 mx-auto mb-3 text-blue-200" />
               <p className="font-semibold mb-2 text-lg">Email Us</p>
               <p className="text-blue-100 break-all sm:break-normal text-sm sm:text-base">
-                partner@redtestlab.com
+                contact@redtestlab.com
               </p>
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 sm:p-6">
               <Phone className="w-8 h-8 mx-auto mb-3 text-blue-200" />
               <p className="font-semibold mb-2 text-lg">Call Us</p>
               <p className="text-blue-100 text-sm sm:text-base">
-                +91-XXXXXXXXXX
+                +91-8804789764
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center items-center max-w-md mx-auto">
-            <button className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base">
+          <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center items-center max-w-2xl mx-auto">
+            <button 
+              onClick={() => setShowDeliveryForm(true)}
+              className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
+            >
+              <Truck className="w-4 h-4 mr-2" />
+              Delivery Boy Application
+            </button>
+            {/* <button className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base">
               Partner Interest Form
             </button>
             <button className="w-full xs:w-auto border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-300 text-sm sm:text-base">
               Download Partnership Guide
-            </button>
+            </button> */}
           </div>
         </div>
       </div>
+
+      {/* Delivery Boy Form Modal */}
+      {showDeliveryForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-lg font-semibold text-gray-900">Delivery Boy Application</h3>
+              <button
+                onClick={() => setShowDeliveryForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <DeliveryBoyForm onClose={() => setShowDeliveryForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

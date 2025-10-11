@@ -388,7 +388,7 @@ const EnhancedHospitalHeader = () => {
                     <Phone className="h-4 w-4" />
                   </div>
                   <div className="ml-3">
-                    <div className="font-medium text-gray-900">898 898 8787</div>
+                    <div className="font-medium text-gray-900">+91-8804789764</div>
                     <div className="text-xs text-gray-500 flex items-center">
                       <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 animate-pulse"></span>
                       24/7 Support
@@ -624,7 +624,7 @@ const EnhancedHospitalHeader = () => {
           </div>
           <div className="ml-3 font-medium">
             <span className="text-blue-600 group-hover:text-blue-700 transition-colors duration-200 flex items-center">
-              898 898 8787
+              +91 8804789764
               <PhoneCall className="ml-2 text-green-500 transform group-hover:rotate-12 transition-transform duration-300 h-3 w-3" />
             </span>
             <div className="text-xs text-gray-500 flex items-center">
