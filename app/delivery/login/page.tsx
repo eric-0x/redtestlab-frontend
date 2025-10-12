@@ -44,7 +44,7 @@ export default function DeliveryBoyLogin() {
       // Format phone number
       const formattedPhone = formatPhoneNumber(formData.phoneNumber)
       
-      const response = await fetch("http://localhost:5000/api/bcb/login", {
+      const response = await fetch("https://redtestlab.com/api/bcb/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

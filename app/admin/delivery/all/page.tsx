@@ -127,7 +127,7 @@ export default function AllDeliveryBoyManagement() {
         return
       }
 
-      const response = await fetch("http://localhost:5000/api/admin/bcb", {
+      const response = await fetch("https://redtestlab.com/api/admin/bcb", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",

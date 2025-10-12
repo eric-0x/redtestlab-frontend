@@ -86,7 +86,7 @@ export default function BCBManagement() {
         return
       }
 
-      const response = await fetch("http://localhost:5000/api/admin/bcb?status=PENDING", {
+      const response = await fetch("https://redtestlab.com/api/admin/bcb?status=PENDING", {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -119,7 +119,7 @@ export default function BCBManagement() {
       setProcessing(true)
       const token = localStorage.getItem("adminToken")
       
-      const response = await fetch(`http://localhost:5000/api/admin/bcb/${selectedBcb.id}/approve`, {
+      const response = await fetch(`https://redtestlab.com/api/admin/bcb/${selectedBcb.id}/approve`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -164,7 +164,7 @@ export default function BCBManagement() {
       setProcessing(true)
         const token = localStorage.getItem("adminToken")
       
-      const response = await fetch(`http://localhost:5000/api/admin/bcb/${selectedBcb.id}/reject`, {
+      const response = await fetch(`https://redtestlab.com/api/admin/bcb/${selectedBcb.id}/reject`, {
         method: "PUT",
         headers: {
           "Authorization": `Bearer ${token}`,
