@@ -1,11 +1,44 @@
 "use client"
 
 import { Users, TrendingUp, Calendar, Home, Clock, CreditCard, Shield, Zap, Building2, Stethoscope, FlaskConical, Smartphone, Mail, Phone, CheckCircle, Star, Truck } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import DeliveryBoyForm from './DeliveryBoyForm'
 
 const Partner = () => {
   const [showDeliveryForm, setShowDeliveryForm] = useState(false)
+
+  // Prevent body scroll when modal is open
+  useEffect(() => {
+    if (showDeliveryForm) {
+      // Disable body scroll
+      document.body.style.overflow = 'hidden'
+    } else {
+      // Re-enable body scroll
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup function to restore scroll when component unmounts
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [showDeliveryForm])
+
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && showDeliveryForm) {
+        setShowDeliveryForm(false)
+      }
+    }
+
+    if (showDeliveryForm) {
+      document.addEventListener('keydown', handleEscape)
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showDeliveryForm])
   const partnerTypes = [
     {
       icon: <FlaskConical className="w-8 h-8" />,
@@ -222,7 +255,7 @@ const Partner = () => {
               className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
             >
               <Truck className="w-4 h-4 mr-2" />
-              Delivery Boy Application
+              Blood Collection Boy Application
             </button>
             {/* <button className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base">
               Partner Interest Form
@@ -236,10 +269,21 @@ const Partner = () => {
 
       {/* Delivery Boy Form Modal */}
       {showDeliveryForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-2xl">
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              setShowDeliveryForm(false)
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-xl">
-              <h3 className="text-lg font-semibold text-gray-900">Delivery Boy Application</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Blood Collection Boy Application</h3>
               <button
                 onClick={() => setShowDeliveryForm(false)}
                 className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"

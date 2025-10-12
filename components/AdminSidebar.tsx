@@ -141,15 +141,22 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
           icon: <FileText size={18} className="text-blue-600" />,
           path: "/admin/booking/results",
         },
+      ],
+    },
+    {
+      title: "Delivery Boy",
+      icon: <ClipboardList size={20} className="text-blue-600" />,
+      mainPath: "/admin/delivery",
+      subLinks: [
         {
-          title: "Report Generation",
-          icon: <FileText size={18} className="text-blue-600" />,
-          path: "/admin/booking/report",
+          title: "New Delivery Boy",
+          icon: <UserCheck size={18} className="text-blue-600" />,
+          path: "/admin/delivery/new",
         },
         {
-          title: "Email Compose",
-          icon: <Mail size={18} className="text-blue-600" />,
-          path: "/admin/booking/email",
+          title: "All Delivery Boy",
+          icon: <UserPlusIcon size={18} className="text-blue-600" />,
+          path: "/admin/delivery/all",
         },
       ],
     },
