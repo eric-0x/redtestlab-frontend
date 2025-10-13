@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { Loader2, UserCheck, Eye, StickyNote, MapPin, Mail, Phone, User, CreditCard, IndianRupee, Hash, Home, Users, UserIcon, Package } from "lucide-react"
+import { useToast } from "@/hooks/use-toast"
 
 const BASE_URL = "http://localhost:5000"
 
@@ -84,6 +85,7 @@ export default function AssignDeliveryBoy() {
   const [collectionDate, setCollectionDate] = useState<string>("")
   const [collectionTime, setCollectionTime] = useState<TimeSlot | "">("")
   const [notes, setNotes] = useState<string>("")
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchBookings()
@@ -159,9 +161,16 @@ export default function AssignDeliveryBoy() {
       }
       await fetchBookings()
       closeAssign()
-      alert("Assigned successfully")
+      toast({
+        title: "Assignment successful",
+        description: `Booking #${assignModal.booking.id} assigned successfully.`,
+      })
     } catch (e: any) {
-      alert(e?.message || "Failed to assign")
+      toast({
+        title: "Assignment failed",
+        description: e?.message || "Failed to assign",
+        variant: "destructive",
+      })
     } finally {
       setAssigning(false)
     }
