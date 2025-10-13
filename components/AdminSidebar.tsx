@@ -158,6 +158,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
           icon: <UserPlusIcon size={18} className="text-blue-600" />,
           path: "/admin/delivery/all",
         },
+        {
+          title: "Assign Delivery Boy",
+          icon: <UserPlusIcon size={18} className="text-blue-600" />,
+          path: "/admin/delivery/assign",
+        },
       ],
     },
     {
