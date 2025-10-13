@@ -332,10 +332,7 @@ function CollectionsPage() {
                                 <Mail className="h-3 w-3 text-gray-500 flex-shrink-0" />
                                 <span className="text-black break-all">{booking.user?.email}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <Hash className="h-3 w-3 text-gray-500 flex-shrink-0" />
-                                <span className="text-black">ID: {booking.userId}</span>
-                              </div>
+                          
                             </div>
                           </div>
 
@@ -454,22 +451,8 @@ function CollectionsPage() {
                                                 <span className="text-gray-600">Quantity:</span>
                                                 <span className="text-black font-medium">{item.quantity}</span>
                                               </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-600">Item ID:</span>
-                                                <span className="text-black font-mono text-xs">{item.id}</span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-600">Booking ID:</span>
-                                                <span className="text-black font-mono text-xs">{item.bookingId}</span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-600">Product ID:</span>
-                                                <span className="text-black font-mono text-xs">{item.productId || "N/A"}</span>
-                                              </div>
-                                              <div className="flex justify-between">
-                                                <span className="text-gray-600">Custom Package ID:</span>
-                                                <span className="text-black font-mono text-xs">{item.customPackageId || "N/A"}</span>
-                                              </div>
+                                             
+                   
                                             </div>
                                           </div>
 
@@ -477,10 +460,7 @@ function CollectionsPage() {
                                             <div className="space-y-2">
                                               <h5 className="font-medium text-black text-sm">Product Details</h5>
                                               <div className="space-y-1 text-sm">
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-600">Slug:</span>
-                                                  <span className="text-black font-mono text-xs">{item.product.slug}</span>
-                                                </div>
+                                        
                                                 <div className="flex justify-between">
                                                   <span className="text-gray-600">Report Time:</span>
                                                   <span className="text-black">{item.product.reportTime} days</span>
@@ -489,22 +469,7 @@ function CollectionsPage() {
                                                   <span className="text-gray-600">Type:</span>
                                                   <span className="text-black">{item.product.productType}</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-600">Category ID:</span>
-                                                  <span className="text-black">{item.product.categoryId}</span>
-                                                </div>
-                                                {item.product.tags && (
-                                                  <div className="flex flex-col gap-1">
-                                                    <span className="text-gray-600">Tags:</span>
-                                                    <div className="flex flex-wrap gap-1">
-                                                      {item.product.tags.split(',').map((tag, index) => (
-                                                        <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                                                          {tag.trim()}
-                                                        </span>
-                                                      ))}
-                                                    </div>
-                                                  </div>
-                                                )}
+                                        
                                               </div>
                                             </div>
                                           )}
@@ -531,10 +496,7 @@ function CollectionsPage() {
                                                   <span className="text-gray-600">Type:</span>
                                                   <span className="text-black">{item.product.category.type}</span>
                                                 </div>
-                                                <div className="flex justify-between">
-                                                  <span className="text-gray-600">Category ID:</span>
-                                                  <span className="text-black">{item.product.category.id}</span>
-                                                </div>
+                                     
                                                 {item.product.category.badge && (
                                                   <div className="flex justify-between">
                                                     <span className="text-gray-600">Badge:</span>
