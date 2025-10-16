@@ -42,6 +42,13 @@ interface Booking {
   bookingType: string
   createdAt: string
   updatedAt: string
+  collectionStatus?: string
+  collectionDate?: string
+  collectionTime?: string
+  collectionNotes?: string
+  collectionProofUrl?: string
+  actualCollectionTime?: string
+  assignedBCBId?: string
   user?: BookingUser
   member?: BookingMember
   address?: BookingAddress
@@ -186,10 +193,14 @@ export default function AssignDeliveryBoy() {
 
   const getStatusBadgeClasses = (status: string) => {
     switch (status) {
-      case "PAID":
-        return "bg-green-100 text-green-800 border-green-200"
       case "PENDING":
         return "bg-yellow-100 text-yellow-800 border-yellow-200"
+      case "COMPLETED":
+        return "bg-green-100 text-green-800 border-green-200"
+      case "IN_PROGRESS":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      case "CANCELLED":
+        return "bg-red-100 text-red-800 border-red-200"
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
@@ -231,8 +242,8 @@ export default function AssignDeliveryBoy() {
                             </h3>
                             <p className="text-gray-600 text-sm mt-1">Created {formatDateTime(b.createdAt)}</p>
                           </div>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(b.status)} self-start`}>
-                            {b.status}
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(b.collectionStatus || b.status)} self-start`}>
+                            {b.collectionStatus || b.status}
                           </span>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
@@ -581,9 +592,9 @@ export default function AssignDeliveryBoy() {
                   <div className="p-3 sm:p-4 grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                     <div className="space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                        <strong>Status:</strong>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(detailsModal.booking.status)} self-start`}>
-                          {detailsModal.booking.status}
+                        <strong>Collection Status:</strong>
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(detailsModal.booking.collectionStatus || detailsModal.booking.status)} self-start`}>
+                          {detailsModal.booking.collectionStatus || detailsModal.booking.status}
                         </span>
                       </div>
                       <div><strong>Amount:</strong> {formatCurrency(detailsModal.booking.amount)}</div>
@@ -596,6 +607,15 @@ export default function AssignDeliveryBoy() {
                       )}
                       {detailsModal.booking.razorpayOrderId && (
                         <div className="break-all"><strong>Order ID:</strong> <code className="text-xs bg-white px-1 rounded border">{detailsModal.booking.razorpayOrderId}</code></div>
+                      )}
+                      {detailsModal.booking.collectionDate && (
+                        <div><strong>Collection Date:</strong> {new Date(detailsModal.booking.collectionDate).toLocaleDateString()}</div>
+                      )}
+                      {detailsModal.booking.collectionTime && (
+                        <div><strong>Collection Time:</strong> {detailsModal.booking.collectionTime}</div>
+                      )}
+                      {detailsModal.booking.assignedBCBId && (
+                        <div className="break-all"><strong>Assigned BCB ID:</strong> <code className="text-xs bg-white px-1 rounded border">{detailsModal.booking.assignedBCBId}</code></div>
                       )}
                     </div>
                   </div>

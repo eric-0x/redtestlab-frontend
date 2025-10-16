@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Loader2, MapPin, Mail, Phone, User, CreditCard, IndianRupee, Hash, Home, Users, UserIcon, Package, Calendar, Clock, StickyNote } from 'lucide-react'
+import { Loader2, MapPin, Mail, Phone, User, CreditCard, IndianRupee, Hash, Home, Users, UserIcon, Package, Calendar, Clock, StickyNote, MessageSquare, Shield } from 'lucide-react'
+import { useToast } from "@/hooks/use-toast"
 
 const BASE_URL = "http://localhost:5000"
 
@@ -112,6 +113,10 @@ function CollectionsPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [pagination, setPagination] = useState<Pagination | null>(null)
+  const [sendingOtp, setSendingOtp] = useState<number | null>(null)
+  const [verifyingOtp, setVerifyingOtp] = useState<number | null>(null)
+  const [otpInput, setOtpInput] = useState<{ [key: number]: string }>({})
+  const { toast } = useToast()
 
   useEffect(() => {
     fetchBookings()
@@ -127,7 +132,7 @@ function CollectionsPage() {
         return
       }
 
-      const response = await fetch(`${BASE_URL}/api/booking-assignment/my-bookings?status=SCHEDULED`, {
+      const response = await fetch(`${BASE_URL}/api/booking-assignment/my-bookings?status=SCHEDULED,IN_PROGRESS`, {
         headers: {
           "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -188,6 +193,8 @@ function CollectionsPage() {
   const getCollectionStatusBadgeClasses = (status: string) => {
     switch (status) {
       case "SCHEDULED":
+        return "bg-orange-100 text-orange-800 border-orange-200"
+      case "IN_PROGRESS":
         return "bg-blue-100 text-blue-800 border-blue-200"
       case "COMPLETED":
         return "bg-green-100 text-green-800 border-green-200"
@@ -198,23 +205,149 @@ function CollectionsPage() {
     }
   }
 
+  const formatPhoneNumber = (phoneNumber: string) => {
+    if (phoneNumber.startsWith('+91')) {
+      return phoneNumber
+    }
+    if (phoneNumber.startsWith('91')) {
+      return `+${phoneNumber}`
+    }
+    if (phoneNumber.startsWith('0')) {
+      return `+91 ${phoneNumber.substring(1)}`
+    }
+    return `+91 ${phoneNumber}`
+  }
+
+  const sendOtp = async (bookingId: number, phoneNumber: string) => {
+    try {
+      setSendingOtp(bookingId)
+      const token = localStorage.getItem("deliveryToken")
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Please login to send OTP",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const formattedPhone = formatPhoneNumber(phoneNumber)
+      const response = await fetch(`${BASE_URL}/api/bcb/send-otp`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+          bookingId: bookingId
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to send OTP")
+      }
+
+      const data = await response.json()
+      
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, collectionStatus: "IN_PROGRESS" }
+          : booking
+      ))
+
+      toast({
+        title: "OTP Sent",
+        description: `OTP has been sent to ${formattedPhone}`,
+      })
+    } catch (error: any) {
+      toast({
+        title: "Failed to send OTP",
+        description: error?.message || "Something went wrong",
+        variant: "destructive",
+      })
+    } finally {
+      setSendingOtp(null)
+    }
+  }
+
+  const verifyOtp = async (bookingId: number, phoneNumber: string, otp: string) => {
+    try {
+      setVerifyingOtp(bookingId)
+      const token = localStorage.getItem("deliveryToken")
+      if (!token) {
+        toast({
+          title: "Error",
+          description: "Please login to verify OTP",
+          variant: "destructive",
+        })
+        return
+      }
+
+      const formattedPhone = formatPhoneNumber(phoneNumber)
+      const response = await fetch(`${BASE_URL}/api/bcb/verify-otp`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          phoneNumber: formattedPhone,
+          otp: otp,
+          bookingId: bookingId
+        }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || "Failed to verify OTP")
+      }
+
+      const data = await response.json()
+      
+      // Update the booking status to COMPLETED
+      setBookings(prev => prev.map(booking => 
+        booking.id === bookingId 
+          ? { ...booking, collectionStatus: "COMPLETED" }
+          : booking
+      ))
+
+      // Clear OTP input
+      setOtpInput(prev => ({ ...prev, [bookingId]: "" }))
+
+      toast({
+        title: "OTP Verified",
+        description: "Collection completed successfully!",
+      })
+    } catch (error: any) {
+      toast({
+        title: "Failed to verify OTP",
+        description: error?.message || "Invalid OTP or something went wrong",
+        variant: "destructive",
+      })
+    } finally {
+      setVerifyingOtp(null)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-0 sm:p-4">
+    <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
           <div className="px-4 sm:px-6 py-4 border-b border-gray-200">
             <h1 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
-              <Package className="h-5 w-5 text-blue-600" />
+              <Package className="h-5 w-5 text-orange-600" />
               My Collections
             </h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">
-              View and manage your assigned PAID collection bookings
+              View and manage your assigned collection bookings (SCHEDULED & IN_PROGRESS)
             </p>
           </div>
-          <div className="p-4 sm:p-6">
+          <div className="p-0 pt-6 ">
             {loading && (
               <div className="flex justify-center items-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
                 <span className="ml-2 text-gray-600">Loading collections...</span>
               </div>
             )}
@@ -225,7 +358,7 @@ function CollectionsPage() {
                 <p className="text-gray-500">{error}</p>
                 <button 
                   onClick={fetchBookings}
-                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700"
                 >
                   Try Again
                 </button>
@@ -237,32 +370,107 @@ function CollectionsPage() {
                 {bookings.length === 0 ? (
                   <div className="text-center py-12">
                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <p className="text-gray-500 text-lg">No PAID collections found</p>
-                    <p className="text-gray-400 text-sm">You don't have any PAID collection bookings yet</p>
+                    <p className="text-gray-500 text-lg">No collections found</p>
+                    <p className="text-gray-400 text-sm">You don't have any SCHEDULED or IN_PROGRESS collection bookings yet</p>
                   </div>
                 ) : (
                   bookings.map((booking) => (
                     <div key={booking.id} className="bg-white border border-gray-200 rounded-lg shadow-sm">
                       <div className="p-4 sm:p-6">
                         {/* Header */}
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-    <div>
+                        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4 mb-6">
+                          {/* Left Side - Booking Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
                               <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
-                                <Hash className="h-4 w-4 text-blue-600" />
-                                Booking {booking.id}
+                                <Hash className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                                <span className="truncate">Booking {booking.id}</span>
                               </h3>
-                              <p className="text-black text-sm mt-1">Created {formatDateTime(booking.createdAt)}</p>
-                              <p className="text-black text-sm">Updated {formatDateTime(booking.updatedAt)}</p>
-                            </div>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(booking.status)} self-start`}>
-                                {booking.status}
-                              </span>
-                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(booking.collectionStatus)} self-start`}>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(booking.collectionStatus)} self-start flex-shrink-0`}>
                                 {booking.collectionStatus}
                               </span>
                             </div>
+                            <div className="space-y-1">
+                              <p className="text-gray-600 text-sm">Created {formatDateTime(booking.createdAt)}</p>
+                              <p className="text-gray-600 text-sm">Updated {formatDateTime(booking.updatedAt)}</p>
+                            </div>
+                          </div>
+
+                          {/* Right Side - OTP Actions */}
+                          <div className="w-full lg:w-auto lg:flex-shrink-0">
+                            {booking.collectionStatus === "SCHEDULED" && (
+                              <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 lg:min-w-[200px]">
+                                <div className="text-center lg:text-left">
+                                  <h4 className="text-sm font-medium text-orange-800 mb-2">Ready to Collect</h4>
+                                  <button
+                                    onClick={() => sendOtp(booking.id, booking.member.phoneNumber)}
+                                    disabled={sendingOtp === booking.id}
+                                    className="w-full lg:w-auto inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                  >
+                                    {sendingOtp === booking.id ? (
+                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <MessageSquare className="h-4 w-4 mr-2" />
+                                    )}
+                                    Send OTP
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {booking.collectionStatus === "IN_PROGRESS" && (
+                              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 lg:min-w-[280px]">
+                                <div className="space-y-3">
+                                  <div className="text-center lg:text-left">
+                                    <h4 className="text-sm font-medium text-blue-800 mb-1">OTP Verification</h4>
+                                    <p className="text-xs text-blue-600">Enter the OTP sent to patient</p>
+                                  </div>
+                                  
+                                  <div className="space-y-2">
+                                    <input
+                                      type="text"
+                                      placeholder="Enter 6-digit OTP"
+                                      value={otpInput[booking.id] || ""}
+                                      onChange={(e) => setOtpInput(prev => ({ ...prev, [booking.id]: e.target.value }))}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-500 text-center font-mono tracking-widest"
+                                      maxLength={6}
+                                      inputMode="numeric"
+                                      pattern="[0-9]*"
+                                    />
+                                    
+                                    <div className="flex flex-col lg:flex-row gap-2">
+                                      <button
+                                        onClick={() => verifyOtp(booking.id, booking.member.phoneNumber, otpInput[booking.id] || "")}
+                                        disabled={verifyingOtp === booking.id || !otpInput[booking.id] || otpInput[booking.id].length < 4}
+                                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        {verifyingOtp === booking.id ? (
+                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        ) : (
+                                          <Shield className="h-4 w-4 mr-1" />
+                                        )}
+                                        <span className="hidden lg:inline">Verify</span>
+                                        <span className="lg:hidden">Verify OTP</span>
+                                      </button>
+                                      
+                                      <button
+                                        onClick={() => sendOtp(booking.id, booking.member.phoneNumber)}
+                                        disabled={sendingOtp === booking.id}
+                                        className="flex-1 inline-flex items-center justify-center px-3 py-2 border border-orange-300 rounded-md text-sm font-medium text-orange-700 bg-orange-50 hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                      >
+                                        {sendingOtp === booking.id ? (
+                                          <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                        ) : (
+                                          <MessageSquare className="h-4 w-4 mr-1" />
+                                        )}
+                                        <span className="hidden lg:inline">Resend</span>
+                                        <span className="lg:hidden">Resend OTP</span>
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
@@ -393,7 +601,7 @@ function CollectionsPage() {
                         {booking.items && booking.items.length > 0 && (
                           <div className="mt-6">
                             <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                              <Package className="h-4 w-4 text-blue-600" />
+                              <Package className="h-4 w-4 text-orange-600" />
                               Items ({booking.items.length})
                             </h4>
                             <div className="bg-gray-50 border border-gray-200 rounded-lg">
