@@ -163,6 +163,11 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
           icon: <UserPlusIcon size={18} className="text-blue-600" />,
           path: "/admin/delivery/assign",
         },
+        {
+          title: "Blood Collected List",
+          icon: <UserPlusIcon size={18} className="text-blue-600" />,
+          path: "/admin/delivery/bloodcollected",
+        },
       ],
     },
     {
