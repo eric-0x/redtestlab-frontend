@@ -159,20 +159,29 @@ export default function BloodCollectedList() {
     setReportModal({ isOpen: false, booking: null })
   }
 
+  const normalizeCloudinaryPdfUrl = (url: string) => {
+    if (!url) return url
+    if (url.includes("/image/upload/") && url.toLowerCase().endsWith(".pdf")) {
+      return url.replace("/image/upload/", "/raw/upload/")
+    }
+    return url
+  }
+
   const uploadPdfToCloudinary = async (file: File) => {
     setPdfUploading(true)
     try {
       const formData = new FormData()
       formData.append("file", file)
       formData.append("upload_preset", "E-Rickshaw")
-      // Use auto resource type to support PDFs
-      const res = await fetch(`https://api.cloudinary.com/v1_1/dm8jxispy/auto/upload`, {
+      // Use raw resource type to ensure PDFs are handled correctly
+      const res = await fetch(`https://api.cloudinary.com/v1_1/dm8jxispy/raw/upload`, {
         method: "POST",
         body: formData,
       })
       if (!res.ok) throw new Error("Failed to upload report")
       const data = await res.json()
-      setPdfUrl(data.secure_url)
+      const secureUrl: string = data.secure_url
+      setPdfUrl(normalizeCloudinaryPdfUrl(secureUrl))
     } catch (e) {
       alert("PDF upload failed. Please try again.")
     } finally {

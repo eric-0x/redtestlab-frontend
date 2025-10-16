@@ -90,18 +90,19 @@ interface ServiceProvider {
   paymentModesAccepted: string[]
 }
 
-interface Prescription {
+// New My Reports API shape
+interface MyReportItemProduct { id: number; name: string }
+interface MyReportItem { id: number; productId: number; quantity: number; price: number; product?: MyReportItemProduct }
+interface MyReportMember { id: number; name: string; email: string }
+interface MyReport {
   id: number
-  userId: number
-  fileUrl: string
   status: string
-  assignedToId: string
-  resultFileUrl: string | null
-  remarks: string | null
-  rejectionReason: string | null
-  createdAt: string
-  updatedAt: string
-  assignedTo: ServiceProvider
+  collectionStatus: string
+  resultUrl: string
+  note: string | null
+  uploadedAt: string
+  member?: MyReportMember
+  items?: MyReportItem[]
 }
 
 // Interface for the meta tags API response
@@ -283,102 +284,38 @@ const BookingCard = ({ booking }: { booking: Booking }) => {
   )
 }
 
-const ReportCard = ({ report }: { report: Prescription }) => {
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "MMM dd, yyyy • hh:mm a")
-    } catch (e) {
-      return dateString
-    }
-  }
-
+const MyReportCard = ({ report }: { report: MyReport }) => {
+  const productNames = (report.items || []).map((it) => it.product?.name).filter(Boolean).join(", ") || "-"
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 hover:border-green-200">
-      {/* Header with gradient background */}
-      <div className="bg-gradient-to-r from-green-50 to-teal-50 p-4 sm:p-5 border-b border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center">
-            <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg p-2.5 mr-4 shadow-sm border border-green-100">
-              <FileText className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <div className="flex items-center">
-                <h3 className="font-semibold text-gray-900">Report #{report.id}</h3>
-                <span className="ml-3 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border bg-green-100 text-green-800 border-green-200">
-                  <CheckCircle className="h-4 w-4 mr-1.5" />
-                  {report.status}
-                </span>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                <span className="font-medium">Completed on:</span> {formatDate(report.updatedAt)}
-              </p>
-            </div>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 hover:border-blue-200">
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 sm:p-5 border-b border-gray-100">
+        <div className="flex items-center">
+          <div className="bg-white bg-opacity-70 backdrop-blur-sm rounded-lg p-2.5 mr-4 shadow-sm border border-blue-100">
+            <FileText className="h-5 w-5 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-gray-900">Report #{report.id}</h3>
+            <p className="text-sm text-gray-600 mt-1">{report.member?.name} ({report.member?.email})</p>
           </div>
         </div>
       </div>
-
-      {/* Main content */}
       <div className="p-4 sm:p-5">
-        {/* Service Provider Info */}
-        <div className="mb-4 pb-4 border-b border-gray-100">
-          <h4 className="font-medium text-gray-700 mb-2">Service Provider</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-            <div className="flex items-center mb-2">
-              <Building className="h-4 w-4 text-gray-500 mr-2" />
-              <span className="font-medium text-gray-800">{report.assignedTo.labName}</span>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-              <div className="flex items-center text-gray-600">
-                <Phone className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
-                {report.assignedTo.contactNumber}
-              </div>
-              <div className="flex items-center text-gray-600">
-                <Mail className="h-3.5 w-3.5 text-gray-400 mr-1.5" />
-                {report.assignedTo.email}
-              </div>
-            </div>
+            <div className="text-xs text-gray-500 mb-1">Products</div>
+            <div className="text-sm text-gray-800">{productNames}</div>
           </div>
-        </div>
-
-        {/* Remarks */}
-        {report.remarks && (
-          <div className="mb-4 pb-4 border-b border-gray-100">
-            <h4 className="font-medium text-gray-700 mb-2">Remarks</h4>
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 text-gray-700">{report.remarks}</div>
-          </div>
-        )}
-
-        {/* Document Links */}
-        <div className="space-y-3">
-          <h4 className="font-medium text-gray-700">Documents</h4>
-          <a
-            href={report.fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center p-3 bg-blue-50 rounded-lg border border-blue-100 text-blue-700 hover:bg-blue-100 transition-colors"
-          >
-            <FileText className="h-5 w-5 mr-3 text-blue-600" />
-            <div className="flex-1">
-              <div className="font-medium">Original Prescription</div>
-              <div className="text-xs text-blue-600 mt-0.5">View the original prescription document</div>
+          {report.note && (
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+              <div className="text-xs text-gray-500 mb-1">Note</div>
+              <div className="text-sm text-gray-800">{report.note}</div>
             </div>
-            <ExternalLink className="h-4 w-4 text-blue-500" />
-          </a>
-          {report.resultFileUrl && (
-            <a
-              href={report.resultFileUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center p-3 bg-green-50 rounded-lg border border-green-100 text-green-700 hover:bg-green-100 transition-colors"
-            >
-              <FileText className="h-5 w-5 mr-3 text-green-600" />
-              <div className="flex-1">
-                <div className="font-medium">Test Results</div>
-                <div className="text-xs text-green-600 mt-0.5">View your test results and analysis</div>
-              </div>
-              <ExternalLink className="h-4 w-4 text-green-500" />
-            </a>
           )}
+        </div>
+        <div className="mt-4">
+          <a href={report.resultUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
+            <ExternalLink className="h-4 w-4 mr-2" /> View Report (PDF)
+          </a>
         </div>
       </div>
     </div>
@@ -388,12 +325,12 @@ const ReportCard = ({ report }: { report: Prescription }) => {
 const BookingAndReportsComponent = () => {
   const [activeTab, setActiveTab] = useState<TabType>("bookings")
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [reports, setReports] = useState<Prescription[]>([])
+  const [reports, setReports] = useState<MyReport[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>("")
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([])
-  const [filteredReports, setFilteredReports] = useState<Prescription[]>([])
+  const [filteredReports, setFilteredReports] = useState<MyReport[]>([])
   const [metaTags, setMetaTags] = useState<MetaTagsResponse | null>(null)
   const [isLoadingMeta, setIsLoadingMeta] = useState(true)
 
@@ -469,27 +406,24 @@ const BookingAndReportsComponent = () => {
     fetchBookings()
   }, [userId])
 
-  // Fetch reports data
+  // Fetch reports data (My Reports API)
   useEffect(() => {
     const fetchReports = async () => {
-      if (!userId) {
-        return // Already handled in the bookings fetch
-      }
-
+      if (!userId) return
       try {
-        const response = await fetch(`https://redtestlab.com/api/prescriptions/user/${userId}/reports`)
-        if (!response.ok) {
-          throw new Error(`Error fetching reports: ${response.statusText}`)
-        }
-        const data = await response.json()
-        setReports(data)
-        setFilteredReports(data)
+        const token = localStorage.getItem("userToken") || localStorage.getItem("token") || ""
+        const res = await fetch(`https://redtestlab.com/api/bookings/my/reports`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        })
+        if (!res.ok) throw new Error(`Error fetching reports: ${res.statusText}`)
+        const data = await res.json()
+        const list: MyReport[] = Array.isArray(data?.reports) ? data.reports : []
+        setReports(list)
+        setFilteredReports(list)
       } catch (err) {
         console.error("Error fetching reports:", err)
-        // We don't set the main error state here to avoid overriding booking errors
       }
     }
-
     fetchReports()
   }, [userId])
 
@@ -515,12 +449,17 @@ const BookingAndReportsComponent = () => {
       setFilteredReports(reports)
     } else {
       const lowerCaseSearch = searchTerm.toLowerCase()
-      const filtered = reports.filter(
-        (report) =>
-          report.assignedTo.labName.toLowerCase().includes(lowerCaseSearch) ||
+      const filtered = reports.filter((report) => {
+        const member = `${report.member?.name || ""} ${report.member?.email || ""}`.toLowerCase()
+        const products = (report.items || []).map((it) => it.product?.name || "").join(" ").toLowerCase()
+        const note = (report.note || "").toLowerCase()
+        return (
           report.id.toString().includes(lowerCaseSearch) ||
-          (report.remarks && report.remarks.toLowerCase().includes(lowerCaseSearch)),
-      )
+          member.includes(lowerCaseSearch) ||
+          products.includes(lowerCaseSearch) ||
+          note.includes(lowerCaseSearch)
+        )
+      })
       setFilteredReports(filtered)
     }
   }, [searchTerm, reports])
@@ -799,7 +738,7 @@ const BookingAndReportsComponent = () => {
                   </div>
                   <div className="grid grid-cols-1 gap-6">
                     {filteredReports.map((report) => (
-                      <ReportCard key={report.id} report={report} />
+                      <MyReportCard key={report.id} report={report} />
                     ))}
                   </div>
                 </div>

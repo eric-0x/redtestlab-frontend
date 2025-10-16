@@ -657,8 +657,8 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
                           <div className="flex items-center">
                             <FileText className="h-5 w-5 text-gray-600 mr-3" />
                             <span className="font-medium text-gray-800">My Reports</span>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
                     </Link>
                     <Link
                           href="/cart"
