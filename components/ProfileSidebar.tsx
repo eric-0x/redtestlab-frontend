@@ -574,81 +574,81 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
 
                 {currentView === "main" && (
                   <>
-                    {/* User info */}
-                    <div className="p-5 border-b border-gray-100">
-                      <div className="flex items-center">
-                        <div className="relative">
-                          <div className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
-                            {userData?.name ? userData.name.charAt(0).toUpperCase() : "U"}
-                          </div>
-                          <div className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
-                        </div>
-                        <div className="ml-4">
-                          <h3 className="font-bold text-lg text-gray-800">{userData?.name || "User"}</h3>
-                          <p className="text-gray-600 text-sm">{userData?.email || "user@example.com"}</p>
-                          <div className="flex items-center mt-1">
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium">
-                              {userData?.role || "User"}
-                            </span>
-                          </div>
-                        </div>
+                {/* User info */}
+                <div className="p-5 border-b border-gray-100">
+                  <div className="flex items-center">
+                    <div className="relative">
+                      <div className="h-16 w-16 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
+                        {userData?.name ? userData.name.charAt(0).toUpperCase() : "U"}
                       </div>
-                      <div className="mt-4 flex">
+                      <div className="absolute bottom-0 right-0 h-4 w-4 bg-green-500 rounded-full border-2 border-white"></div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="font-bold text-lg text-gray-800">{userData?.name || "User"}</h3>
+                      <p className="text-gray-600 text-sm">{userData?.email || "user@example.com"}</p>
+                      <div className="flex items-center mt-1">
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full font-medium">
+                          {userData?.role || "User"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 flex">
                         <button 
                           onClick={() => setCurrentView("edit-profile")}
                           className="flex-1 mr-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
                         >
-                          Edit Profile
-                        </button>
-                        <button
-                          onClick={handleLogout}
-                          className="py-2 px-4 border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200 flex items-center"
-                        >
-                          <LogOut className="h-4 w-4 mr-1" />
-                          Logout
-                        </button>
-                      </div>
-                    </div>
-                    {/* Quick actions */}
-                    <div className="p-5 border-b border-gray-100">
-                      <h4 className="font-medium text-gray-500 uppercase text-xs tracking-wider mb-3">Quick Actions</h4>
-                      <div className="grid grid-cols-3 gap-3">
-                        <Link
+                        Edit Profile
+                      </button>
+                    <button
+                      onClick={handleLogout}
+                      className="py-2 px-4 border border-gray-300 hover:bg-gray-50 rounded-lg font-medium transition-colors duration-200 flex items-center"
+                    >
+                      <LogOut className="h-4 w-4 mr-1" />
+                      Logout
+                    </button>
+                  </div>
+                </div>
+                {/* Quick actions */}
+                <div className="p-5 border-b border-gray-100">
+                  <h4 className="font-medium text-gray-500 uppercase text-xs tracking-wider mb-3">Quick Actions</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    <Link
                           href="/all"
-                          className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                        >
+                      className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                    >
                           <Package className="h-6 w-6 text-blue-600 mb-1" />
                           <span className="text-xs text-center font-medium">Packages</span>
-                        </Link>
-                        <Link
+                    </Link>
+                    <Link
                           href="/test"
-                          className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                        >
+                      className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                    >
                           <TestTube className="h-6 w-6 text-green-600 mb-1" />
                           <span className="text-xs text-center font-medium">Tests</span>
-                        </Link>
-                        <Link
+                    </Link>
+                    <Link
                           href="/cart"
-                          className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                        >
+                      className="flex flex-col items-center p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                    >
                           <ShoppingCart className="h-6 w-6 text-red-600 mb-1" />
                           <span className="text-xs text-center font-medium">Cart</span>
-                        </Link>
-                      </div>
-                    </div>
-                    {/* Menu items */}
-                    <div className="p-5">
-                      <h4 className="font-medium text-gray-500 uppercase text-xs tracking-wider mb-3">Account Settings</h4>
-                      <nav className="space-y-1">
+                    </Link>
+                  </div>
+                </div>
+                {/* Menu items */}
+                <div className="p-5">
+                  <h4 className="font-medium text-gray-500 uppercase text-xs tracking-wider mb-3">Account Settings</h4>
+                  <nav className="space-y-1">
                         <button
                           onClick={() => setCurrentView("personal-info")}
                           className="w-full flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                        >
-                          <div className="flex items-center">
-                            <User className="h-5 w-5 text-gray-600 mr-3" />
-                            <span className="font-medium text-gray-800">Personal Information</span>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
+                    >
+                      <div className="flex items-center">
+                        <User className="h-5 w-5 text-gray-600 mr-3" />
+                        <span className="font-medium text-gray-800">Personal Information</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
                         </button>
                         <Link
                           href="/booking-reports"
@@ -659,29 +659,29 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
                             <span className="font-medium text-gray-800">My Reports</span>
                           </div>
                           <ChevronRight className="h-4 w-4 text-gray-400" />
-                        </Link>
-                        <Link
+                    </Link>
+                    <Link
                           href="/cart"
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                        >
-                          <div className="flex items-center">
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                    >
+                      <div className="flex items-center">
                             <ShoppingCart className="h-5 w-5 text-gray-600 mr-3" />
                             <span className="font-medium text-gray-800">My Cart</span>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        </Link>
-                        <Link
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </Link>
+                    <Link
                           href="/help"
-                          className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
-                        >
-                          <div className="flex items-center">
+                      className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+                    >
+                      <div className="flex items-center">
                             <HelpCircle className="h-5 w-5 text-gray-600 mr-3" />
                             <span className="font-medium text-gray-800">Help & Support</span>
-                          </div>
-                          <ChevronRight className="h-4 w-4 text-gray-400" />
-                        </Link>
-                      </nav>
-                    </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </Link>
+                  </nav>
+                </div>
                   </>
                 )}
 
@@ -694,11 +694,11 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
                         <div className="relative">
                           <div className="h-20 w-20 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
                             {userData?.name ? userData.name.charAt(0).toUpperCase() : "U"}
-                          </div>
+                    </div>
                           <button className="absolute bottom-0 right-0 h-6 w-6 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white transition-colors duration-200">
                             <Camera className="h-3 w-3" />
                           </button>
-                        </div>
+                    </div>
                       </div>
 
                       {/* Basic Information */}
@@ -919,14 +919,14 @@ const ProfileSidebar = ({ isOpen, onClose }: ProfileSidebarProps) => {
                             <Activity className="h-5 w-5 text-gray-400 mr-3" />
                             <div className="flex-1">
                               <p className="text-sm font-medium text-gray-900">Account Status</p>
-                              <div className="flex items-center">
+                      <div className="flex items-center">
                                 <CheckCircle className="h-4 w-4 text-green-500 mr-1" />
                                 <p className="text-sm text-green-600">Active</p>
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       </div>
+                    </div>
+                  </div>
+                </div>
 
                       {/* Quick Actions */}
                       <div className="pt-4 border-t border-gray-200">

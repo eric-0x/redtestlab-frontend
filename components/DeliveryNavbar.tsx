@@ -110,11 +110,7 @@ export default function DeliveryNavbar({ sidebarOpen, setSidebarOpen }: NavbarPr
                   <p className="text-xs text-gray-500">{user?.email || "delivery@redtestlab.com"}</p>
                 </div>
                 
-                <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors">
-                  <UserCircle className="h-4 w-4 inline mr-2" />
-                  Profile
-                </button>
-                
+             
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors"
