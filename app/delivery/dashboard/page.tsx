@@ -16,7 +16,7 @@ import {
   Loader2
 } from "lucide-react"
 
-const BASE_URL = "http://localhost:5000"
+const BASE_URL = "https://redtestlab.com"
 
 interface DashboardBCB {
   name: string

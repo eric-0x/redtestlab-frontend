@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Loader2, MapPin, Mail, Phone, User, CreditCard, IndianRupee, Hash, Home, Users, UserIcon, Package, Calendar, Clock, StickyNote, MessageSquare, Shield } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 
-const BASE_URL = "http://localhost:5000"
+const BASE_URL = "https://redtestlab.com"
 
 interface ProductCategory {
   id: number

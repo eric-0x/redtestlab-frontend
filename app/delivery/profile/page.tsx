@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { Loader2, User, Mail, Phone, MapPin, Calendar, CreditCard, Building, Camera, Save, Edit3, X, FileText, Shield, Award, Clock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 
-const BASE_URL = "http://localhost:5000"
+const BASE_URL = "https://redtestlab.com"
 
 interface BCBProfile {
   id: string

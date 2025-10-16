@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { Loader2, UserCheck, Eye, StickyNote, MapPin, Mail, Phone, User, CreditCard, IndianRupee, Hash, Home, Users, UserIcon, Package } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
-const BASE_URL = "http://localhost:5000"
+const BASE_URL = "https://redtestlab.com"
 
 interface BookingItemProductParam { id: number; name: string; unit: string; referenceRange: string }
 interface BookingItemProductCategory { id: number; name: string }
