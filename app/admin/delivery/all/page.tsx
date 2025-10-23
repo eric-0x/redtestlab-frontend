@@ -451,7 +451,7 @@ export default function AllDeliveryBoyManagement() {
               <TableHead className="w-[15%]">Contact</TableHead>
               <TableHead className="w-[12%]">Location</TableHead>
               <TableHead className="w-[8%]">Status</TableHead>
-              <TableHead className="w-[10%]">Wallet Balance</TableHead>
+              <TableHead className="w-[10%] whitespace-nowrap">Wallet Balance</TableHead>
               <TableHead className="w-[12%]">Date Processed</TableHead>
               <TableHead className="w-[15%]">Actions</TableHead>
             </TableRow>
@@ -556,11 +556,6 @@ export default function AllDeliveryBoyManagement() {
                     <span style={{ color: "hsl(222.2 84% 4.9%)" }}>
                       {bcb.verifiedAt ? formatDate(bcb.verifiedAt) : formatDate(bcb.updatedAt)}
                     </span>
-                    {bcb.approvedByUser && (
-                      <p className="text-xs" style={{ color: "hsl(215.4 16.3% 46.9%)" }}>
-                        by {bcb.approvedByUser.email}
-                      </p>
-                    )}
                   </TableCell>
                   <TableCell className="w-[15%]">
                     <div className="flex items-center justify-start gap-2">

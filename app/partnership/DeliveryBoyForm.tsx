@@ -90,6 +90,14 @@ const DeliveryBoyForm = ({ onClose }: DeliveryBoyFormProps) => {
     }))
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement && currentStep !== totalSteps) {
+      e.preventDefault()
+      // Don't submit form on Enter key press in input fields unless it's the final step
+      return
+    }
+  }
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name } = e.target
     const file = e.target.files?.[0] || null
@@ -894,7 +902,7 @@ const DeliveryBoyForm = ({ onClose }: DeliveryBoyFormProps) => {
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
         {renderStep()}
 
         {/* Navigation Buttons */}

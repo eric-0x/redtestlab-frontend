@@ -57,6 +57,14 @@ const HospitalForm = ({ onClose }: HospitalFormProps) => {
     }
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
+    if (e.key === 'Enter' && e.target instanceof HTMLInputElement) {
+      e.preventDefault()
+      // Don't submit form on Enter key press in input fields
+      return
+    }
+  }
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files) return
@@ -234,7 +242,7 @@ const HospitalForm = ({ onClose }: HospitalFormProps) => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} onKeyDown={handleKeyDown} className="space-y-6">
         {/* Basic Information */}
         <div className="bg-gray-50 p-6 rounded-lg">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">

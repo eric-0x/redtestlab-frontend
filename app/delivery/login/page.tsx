@@ -27,11 +27,8 @@ export default function DeliveryBoyLogin() {
     // Remove all non-digits
     const digits = phone.replace(/\D/g, "")
     
-    // If it doesn't start with 0, add 0
-    if (digits && !digits.startsWith("0")) {
-      return "0" + digits
-    }
-    
+    // Return digits as-is without adding 0 prefix
+    // The database stores phone numbers without country code prefix
     return digits
   }
 
