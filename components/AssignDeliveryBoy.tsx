@@ -210,7 +210,7 @@ export default function AssignDeliveryBoy() {
   const getPaymentMethodBadgeClasses = (paymentMethod: string) => {
     switch (paymentMethod) {
       case "COD":
-        return "bg-orange-100 text-orange-800 border-orange-200"
+        return "bg-green-100 text-green-800 border-green-200"
       case "ONLINE":
         return "bg-blue-100 text-blue-800 border-blue-200"
       default:

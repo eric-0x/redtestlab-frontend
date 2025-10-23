@@ -386,12 +386,12 @@ function CollectionsPage() {
                                 <Hash className="h-4 w-4 text-orange-600 flex-shrink-0" />
                                 <span className="truncate">Booking {booking.id}</span>
                               </h3>
-                              <div className="flex flex-col gap-2 items-end">
+                              <div className="flex flex-col sm:flex-row gap-2 items-end">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(booking.collectionStatus)} self-start flex-shrink-0`}>
                                   {booking.collectionStatus}
                                 </span>
                                 <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
-                                  booking.paymentMethod === 'COD' ? 'bg-orange-100 text-orange-800 border-orange-200' : 'bg-blue-100 text-blue-800 border-blue-200'
+                                  booking.paymentMethod === 'COD' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-blue-100 text-blue-800 border-blue-200'
                                 }`}>
                                   {booking.paymentMethod === 'COD' ? 'Cash on Delivery' : booking.paymentMethod}
                                 </span>
