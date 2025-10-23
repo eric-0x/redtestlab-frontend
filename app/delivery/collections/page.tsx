@@ -390,7 +390,7 @@ function CollectionsPage() {
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(booking.collectionStatus)} self-start flex-shrink-0`}>
                                   {booking.collectionStatus}
                                 </span>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${
                                   booking.paymentMethod === 'COD' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-blue-100 text-blue-800 border-blue-200'
                                 }`}>
                                   {booking.paymentMethod === 'COD' ? 'Cash on Delivery' : booking.paymentMethod}

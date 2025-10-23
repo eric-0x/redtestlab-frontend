@@ -251,11 +251,11 @@ export default function AssignDeliveryBoy() {
                             <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
                               <Hash className="h-4 w-4 text-blue-600" />
                               Booking {b.id}
-                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(b.collectionStatus || b.status)}`}>
+                              <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(b.collectionStatus || b.status)}`}>
                                 {b.collectionStatus || b.status}
                               </span>
                               {b.paymentMethod && (
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
                                   {b.paymentMethod === 'COD' ? 'Cash on Delivery' : b.paymentMethod}
                                 </span>
                               )}
@@ -394,7 +394,7 @@ export default function AssignDeliveryBoy() {
                             {b.paymentMethod && (
                               <div className="flex justify-between items-center">
                                 <span>Payment:</span>
-                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
                                   {b.paymentMethod === 'COD' ? 'Cash on Delivery' : b.paymentMethod}
                                 </span>
                               </div>
@@ -618,7 +618,7 @@ export default function AssignDeliveryBoy() {
                     <div className="space-y-2">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                         <strong>Collection Status:</strong>
-                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(detailsModal.booking.collectionStatus || detailsModal.booking.status)} self-start`}>
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(detailsModal.booking.collectionStatus || detailsModal.booking.status)} self-start`}>
                           {detailsModal.booking.collectionStatus || detailsModal.booking.status}
                         </span>
                       </div>
@@ -627,7 +627,7 @@ export default function AssignDeliveryBoy() {
                       {detailsModal.booking.paymentMethod && (
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                           <strong>Payment Method:</strong>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(detailsModal.booking.paymentMethod)} self-start`}>
+                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getPaymentMethodBadgeClasses(detailsModal.booking.paymentMethod)} self-start`}>
                             {detailsModal.booking.paymentMethod === 'COD' ? 'Cash on Delivery' : detailsModal.booking.paymentMethod}
                           </span>
                         </div>
