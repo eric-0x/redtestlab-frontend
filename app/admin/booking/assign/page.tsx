@@ -156,8 +156,9 @@ export interface ServiceProvider {
 export interface Booking {
   id: number
   userId: number
-  razorpayOrderId: string
-  razorpayPaymentId: string
+  razorpayOrderId: string | null
+  razorpayPaymentId: string | null
+  paymentMethod: string
   status: string
   amount: number
   bookingType: string
@@ -492,7 +493,8 @@ const AdminPanel = () => {
                               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                                 <span>Payment ID:</span>
                                 <code className="text-xs bg-gray-100 px-1 rounded border break-all">
-                                  {booking.razorpayPaymentId}
+                                  {booking.razorpayPaymentId || 
+                                   (booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No Payment ID')}
                                 </code>
                               </div>
                             </div>
@@ -869,13 +871,15 @@ const AdminPanel = () => {
                         <div className="break-all">
                           <strong>Payment ID:</strong>{" "}
                           <code className="text-xs bg-white px-1 rounded border">
-                            {detailsModal.booking.razorpayPaymentId}
+                            {detailsModal.booking.razorpayPaymentId || 
+                             (detailsModal.booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No Payment ID')}
                           </code>
                         </div>
                         <div className="break-all">
                           <strong>Order ID:</strong>{" "}
                           <code className="text-xs bg-white px-1 rounded border">
-                            {detailsModal.booking.razorpayOrderId}
+                            {detailsModal.booking.razorpayOrderId || 
+                             (detailsModal.booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No Order ID')}
                           </code>
                         </div>
                       </div>

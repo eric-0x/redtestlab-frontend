@@ -11,8 +11,9 @@ interface BookingUser {
 
 interface Booking {
   id: string;
-  razorpayOrderId: string;
-  razorpayPaymentId: string;
+  razorpayOrderId: string | null;
+  razorpayPaymentId: string | null;
+  paymentMethod: string;
   user: BookingUser;
   createdAt: string;
   amount: number;
@@ -224,7 +225,12 @@ export default function RecentBookings(): React.ReactNode {
                     <tr key={booking.id} className="hover:bg-blue-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-blue-900">#{booking.id}</div>
-                        <div className="text-xs text-gray-500">{booking.razorpayOrderId.substring(0, 14)}...</div>
+                        <div className="text-xs text-gray-500">
+                          {booking.razorpayOrderId ? 
+                            `${booking.razorpayOrderId.substring(0, 14)}...` : 
+                            booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No payment ID'
+                          }
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
@@ -279,7 +285,12 @@ export default function RecentBookings(): React.ReactNode {
                     <div className="flex justify-between">
                       <div className="text-sm text-gray-600">Booking ID</div>
                       <div className="text-sm font-medium text-gray-900">
-                        #{booking.id} <span className="text-xs text-gray-500 font-normal ml-1">({booking.razorpayOrderId.substring(0, 10)}...)</span>
+                        #{booking.id} <span className="text-xs text-gray-500 font-normal ml-1">
+                          {booking.razorpayOrderId ? 
+                            `(${booking.razorpayOrderId.substring(0, 10)}...)` : 
+                            booking.paymentMethod === 'COD' ? '(COD)' : '(No ID)'
+                          }
+                        </span>
                       </div>
                     </div>
                     

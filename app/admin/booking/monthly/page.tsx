@@ -32,8 +32,9 @@ interface Booking {
   status: string;
   createdAt: string;
   bookingType: string;
-  razorpayOrderId: string;
-  razorpayPaymentId: string;
+  razorpayOrderId: string | null;
+  paymentMethod: string;
+  razorpayPaymentId: string | null;
   user: BookingUser;
 }
 
@@ -480,7 +481,12 @@ export default function MonthlyOverview() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-blue-900">#{booking.id}</div>
-                        <div className="text-xs text-gray-500">{booking.razorpayOrderId.substring(0, 14)}...</div>
+                        <div className="text-xs text-gray-500">
+                          {booking.razorpayOrderId ? 
+                            `${booking.razorpayOrderId.substring(0, 14)}...` : 
+                            booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No payment ID'
+                          }
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {booking.bookingType}
