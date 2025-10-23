@@ -178,7 +178,7 @@ const HospitalForm = ({ onClose }: HospitalFormProps) => {
     })
 
     try {
-      const response = await fetch('http://localhost:5000/api/enquiries/hospital', {
+      const response = await fetch('https://redtestlab.com/api/enquiries/hospital', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

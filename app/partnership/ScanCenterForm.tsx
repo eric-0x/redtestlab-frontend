@@ -25,7 +25,7 @@ const ScanCenterForm = ({ onClose }: ScanCenterFormProps) => {
 
   const scanTypes = ['LAB', 'DIAGNOSTIC', 'IMAGING', 'PATHOLOGY']
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData(prev => ({
       ...prev,
@@ -44,7 +44,7 @@ const ScanCenterForm = ({ onClose }: ScanCenterFormProps) => {
     })
 
     try {
-      const response = await fetch('http://localhost:5000/api/enquiries/scan-center', {
+      const response = await fetch('https://redtestlab.com/api/enquiries/scan-center', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

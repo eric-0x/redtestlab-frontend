@@ -40,7 +40,7 @@ const ScanEnquiries = () => {
         return
       }
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:5000'}/api/enquiries/scan-center`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'https://redtestlab.com'}/api/enquiries/scan-center`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
