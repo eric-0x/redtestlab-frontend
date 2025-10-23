@@ -3,13 +3,19 @@
 import { Users, TrendingUp, Calendar, Home, Clock, CreditCard, Shield, Zap, Building2, Stethoscope, FlaskConical, Smartphone, Mail, Phone, CheckCircle, Star, Truck } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import DeliveryBoyForm from './DeliveryBoyForm'
+import HospitalForm from './HospitalForm'
+import DoctorForm from './DoctorForm'
+import ScanCenterForm from './ScanCenterForm'
 
 const Partner = () => {
   const [showDeliveryForm, setShowDeliveryForm] = useState(false)
+  const [showHospitalForm, setShowHospitalForm] = useState(false)
+  const [showDoctorForm, setShowDoctorForm] = useState(false)
+  const [showScanCenterForm, setShowScanCenterForm] = useState(false)
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (showDeliveryForm) {
+    if (showDeliveryForm || showHospitalForm || showDoctorForm || showScanCenterForm) {
       // Disable body scroll
       document.body.style.overflow = 'hidden'
     } else {
@@ -21,24 +27,27 @@ const Partner = () => {
     return () => {
       document.body.style.overflow = 'unset'
     }
-  }, [showDeliveryForm])
+  }, [showDeliveryForm, showHospitalForm, showDoctorForm, showScanCenterForm])
 
   // Handle escape key to close modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && showDeliveryForm) {
-        setShowDeliveryForm(false)
+      if (e.key === 'Escape') {
+        if (showDeliveryForm) setShowDeliveryForm(false)
+        if (showHospitalForm) setShowHospitalForm(false)
+        if (showDoctorForm) setShowDoctorForm(false)
+        if (showScanCenterForm) setShowScanCenterForm(false)
       }
     }
 
-    if (showDeliveryForm) {
+    if (showDeliveryForm || showHospitalForm || showDoctorForm || showScanCenterForm) {
       document.addEventListener('keydown', handleEscape)
     }
 
     return () => {
       document.removeEventListener('keydown', handleEscape)
     }
-  }, [showDeliveryForm])
+  }, [showDeliveryForm, showHospitalForm, showDoctorForm, showScanCenterForm])
   const partnerTypes = [
     {
       icon: <FlaskConical className="w-8 h-8" />,
@@ -249,20 +258,35 @@ const Partner = () => {
             </div>
           </div>
 
-          <div className="flex flex-col xs:flex-row gap-3 sm:gap-4 justify-center items-center max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 max-w-4xl mx-auto">
             <button 
               onClick={() => setShowDeliveryForm(true)}
-              className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
+              className="w-full bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
             >
               <Truck className="w-4 h-4 mr-2" />
               Blood Collection Boy Application
             </button>
-            {/* <button className="w-full xs:w-auto bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base">
-              Partner Interest Form
+            <button 
+              onClick={() => setShowHospitalForm(true)}
+              className="w-full bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
+            >
+              <Building2 className="w-4 h-4 mr-2" />
+              Hospital Registration Form
             </button>
-            <button className="w-full xs:w-auto border-2 border-white text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors duration-300 text-sm sm:text-base">
-              Download Partnership Guide
-            </button> */}
+            <button 
+              onClick={() => setShowDoctorForm(true)}
+              className="w-full bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
+            >
+              <Stethoscope className="w-4 h-4 mr-2" />
+              Doctor Registration Form
+            </button>
+            <button 
+              onClick={() => setShowScanCenterForm(true)}
+              className="w-full bg-white text-blue-600 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors duration-300 shadow-lg text-sm sm:text-base flex items-center justify-center"
+            >
+              <FlaskConical className="w-4 h-4 mr-2" />
+              Scan Center Registration Form
+            </button>
           </div>
         </div>
       </div>
@@ -295,6 +319,105 @@ const Partner = () => {
             </div>
             <div className="p-4">
               <DeliveryBoyForm onClose={() => setShowDeliveryForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hospital Form Modal */}
+      {showHospitalForm && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              setShowHospitalForm(false)
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-lg font-semibold text-gray-900">Hospital Registration Form</h3>
+              <button
+                onClick={() => setShowHospitalForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <HospitalForm onClose={() => setShowHospitalForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Doctor Form Modal */}
+      {showDoctorForm && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              setShowDoctorForm(false)
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-lg font-semibold text-gray-900">Doctor Registration Form</h3>
+              <button
+                onClick={() => setShowDoctorForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <DoctorForm onClose={() => setShowDoctorForm(false)} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Scan Center Form Modal */}
+      {showScanCenterForm && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+          onClick={(e) => {
+            // Close modal when clicking on backdrop
+            if (e.target === e.currentTarget) {
+              setShowScanCenterForm(false)
+            }
+          }}
+        >
+          <div 
+            className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-lg font-semibold text-gray-900">Scan Center Registration Form</h3>
+              <button
+                onClick={() => setShowScanCenterForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors duration-200 p-1 rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-4">
+              <ScanCenterForm onClose={() => setShowScanCenterForm(false)} />
             </div>
           </div>
         </div>

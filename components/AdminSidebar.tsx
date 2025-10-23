@@ -230,6 +230,16 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen, currentPath }: Si
         { title: "Manage Doctors", icon: <User2 size={18} className="text-blue-600" />, path: "/admin/hospital/new" },
       ],
     },
+    {
+      title: "Enquiries",
+      icon: <Mail size={20} className="text-blue-600" />,
+      mainPath: "/admin/enquiries",
+      subLinks: [
+        { title: "Hospital", icon: <Hospital size={18} className="text-blue-600" />, path: "/admin/enquiries/hospital" },
+        { title: "Doctor", icon: <Stethoscope size={18} className="text-blue-600" />, path: "/admin/enquiries/doctor" },
+        { title: "Scan", icon: <Scan size={18} className="text-blue-600" />, path: "/admin/enquiries/scan" },
+      ],
+    },
   ]
 
   const toggleSection = (title: string) => {
