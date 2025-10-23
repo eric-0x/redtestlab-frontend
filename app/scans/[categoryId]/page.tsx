@@ -560,12 +560,14 @@ const ScanListing: React.FC = () => {
       setBookingLoading(true)
       setBookingError(null)
       const finalPrice = selectedScan.discountedPrice || selectedScan.price
+      
       const bookingData = {
         ...bookingForm,
         scanId: selectedScan.id,
-        paidAmount: finalPrice,
-        razorpayOrderId,
-        razorpayPaymentId,
+        paidAmount: bookingForm.paymentMethod === "online" ? finalPrice : undefined,
+        razorpayOrderId: bookingForm.paymentMethod === "online" ? razorpayOrderId : undefined,
+        razorpayPaymentId: bookingForm.paymentMethod === "online" ? razorpayPaymentId : undefined,
+        paymentMethod: bookingForm.paymentMethod,
       }
 
       const response = await fetch(`${BACKEND_URL}/api/scan/bookings`, {
@@ -579,7 +581,12 @@ const ScanListing: React.FC = () => {
       if (!response.ok) {
         throw new Error("Failed to create booking")
       }
-      alert("Booking confirmed! You will receive a confirmation SMS/Email shortly.")
+      
+      const successMessage = bookingForm.paymentMethod === "cod" 
+        ? "COD booking confirmed! You will receive a confirmation SMS/Email shortly. Payment will be collected at the lab."
+        : "Booking confirmed! You will receive a confirmation SMS/Email shortly."
+      
+      alert(successMessage)
       setShowBookingModal(false)
       setSelectedScan(null)
       setBookingForm({
@@ -603,7 +610,14 @@ const ScanListing: React.FC = () => {
       setBookingError("Please fill in all required fields")
       return
     }
-    handlePayment()
+    
+    if (bookingForm.paymentMethod === "cod") {
+      // For COD, directly create booking without payment
+      handleBooking()
+    } else {
+      // For online payment, process payment first
+      handlePayment()
+    }
   }
 
   if (loading) {
@@ -1267,7 +1281,9 @@ const ScanListing: React.FC = () => {
                     >
                       {bookingLoading
                         ? "Processing..."
-                        : `Confirm`}
+                        : bookingForm.paymentMethod === "cod" 
+                          ? "Place COD Order" 
+                          : "Confirm & Pay"}
                     </button>
                   </div>
                 </div>

@@ -104,6 +104,9 @@ export const createBooking = async (
   amount: number,
   type: "cart" | "direct",
   items: any[],
+  memberId?: number,
+  addressId?: number,
+  paymentMethod: "ONLINE" | "COD" = "ONLINE"
 ) => {
   try {
     const response = await fetch("https://redtestlab.com/api/bookings/create-booking", {
@@ -123,6 +126,9 @@ export const createBooking = async (
         amount,
         type,
         items,
+        memberId,
+        addressId,
+        paymentMethod,
       }),
     })
 
@@ -134,6 +140,48 @@ export const createBooking = async (
     return await response.json()
   } catch (error) {
     console.error("Error creating booking:", error)
+    throw error
+  }
+}
+
+// Function to create a COD booking (no payment required)
+export const createCODBooking = async (
+  userId: number,
+  amount: number,
+  type: "cart" | "direct",
+  items: any[],
+  memberId: number,
+  addressId: number
+) => {
+  try {
+    const response = await fetch("https://redtestlab.com/api/bookings/create-cod-booking", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(localStorage.getItem("userToken")
+          ? {
+              Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+            }
+          : {}),
+      },
+      body: JSON.stringify({
+        userId,
+        amount,
+        type,
+        items,
+        memberId,
+        addressId,
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || `COD booking creation failed: ${response.status}`)
+    }
+
+    return await response.json()
+  } catch (error) {
+    console.error("Error creating COD booking:", error)
     throw error
   }
 }

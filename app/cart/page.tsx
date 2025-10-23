@@ -1095,6 +1095,7 @@ const Cart = () => {
 
   const [couponCode, setCouponCode] = useState("")
   const [couponLoading, setCouponLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState<"ONLINE" | "COD">("ONLINE")
   const [couponError, setCouponError] = useState("")
 
   // Use local state to manage cart data to avoid full page reloads
@@ -2004,6 +2005,79 @@ const Cart = () => {
     }
   }
 
+  const handleCODCheckout = async () => {
+    try {
+      setCheckoutLoading(true)
+
+      // Get user ID from localStorage
+      const userId = Number.parseInt(getUserId())
+
+      // Extract cart items from local cart for booking creation
+      const cartItems = localCart?.items.map((item) => ({
+        productId: item.productId,
+        customPackageId: (item as any).customPackageId || null,
+        quantity: item.quantity,
+        price: item.price,
+      })) || []
+
+      // Create COD booking
+      const bookingResponse = await fetch("https://redtestlab.com/api/bookings/create-cod-booking", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(localStorage.getItem("userToken")
+            ? {
+                Authorization: `Bearer ${localStorage.getItem("userToken")}`,
+              }
+            : {}),
+        },
+        body: JSON.stringify({
+          userId: userId,
+          amount: finalTotalPrice,
+          type: "cart",
+          items: cartItems,
+          memberId: selectedMembers[0]?.id,
+          addressId: selectedAddress?.id,
+        }),
+      })
+
+      const bookingData = await bookingResponse.json()
+      console.log("COD Booking created:", bookingData)
+
+      if (!bookingResponse.ok) {
+        throw new Error(bookingData.error || `COD booking creation failed: ${bookingResponse.status}`)
+      }
+
+      // Show success notification
+      setNotification({
+        show: true,
+        title: "COD Order Placed",
+        message: "Your COD order has been confirmed! Payment will be collected on delivery.",
+        type: "success",
+      })
+
+      // Reset the cart and stepper
+      setCurrentStep(0)
+      setSelectedMembers([])
+      setSelectedAddress(null)
+      setPaymentMethod("ONLINE") // Reset to default
+
+      // Refresh cart
+      await refreshCart()
+
+      setCheckoutLoading(false)
+    } catch (error) {
+      console.error("COD checkout error:", error)
+      setNotification({
+        show: true,
+        title: "COD Order Failed",
+        message: error instanceof Error ? error.message : "Failed to place COD order",
+        type: "error",
+      })
+      setCheckoutLoading(false)
+    }
+  }
+
   const handlePaymentSuccess = async (response: any, razorpayOrderId: string, amount: number, items: any[]) => {
     try {
       console.log("Payment successful, creating booking...")
@@ -2708,6 +2782,89 @@ const Cart = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Payment Method Selection */}
+              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-50 to-indigo-50 p-6">
+                  <h3 className="text-xl font-bold text-slate-800">Choose Payment Method</h3>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {/* Online Payment Option */}
+                    <div
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                        paymentMethod === "ONLINE"
+                          ? "border-sky-500 bg-sky-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                      onClick={() => setPaymentMethod("ONLINE")}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center">
+                            {paymentMethod === "ONLINE" && (
+                              <div className="w-2 h-2 bg-sky-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-800">Online Payment</h4>
+                            <p className="text-sm text-slate-600">Pay securely with Razorpay</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <img src="/razorpay-icon.svg" alt="Razorpay" className="w-8 h-8" />
+                          <span className="text-sm font-medium text-slate-600">Secure</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* COD Option */}
+                    <div
+                      className={`p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                        paymentMethod === "COD"
+                          ? "border-green-500 bg-green-50"
+                          : "border-slate-200 hover:border-slate-300"
+                      }`}
+                      onClick={() => setPaymentMethod("COD")}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-5 h-5 rounded-full border-2 flex items-center justify-center">
+                            {paymentMethod === "COD" && (
+                              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-slate-800">Cash on Delivery</h4>
+                            <p className="text-sm text-slate-600">Pay when your order is delivered</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                            <span className="text-green-600 font-bold text-sm">₹</span>
+                          </div>
+                          <span className="text-sm font-medium text-slate-600">COD</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {paymentMethod === "COD" && (
+                    <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-start space-x-2">
+                        <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center mt-0.5">
+                          <span className="text-green-600 text-xs">ℹ</span>
+                        </div>
+                        <div>
+                          <h5 className="font-medium text-green-800">Cash on Delivery</h5>
+                          <p className="text-sm text-green-700 mt-1">
+                            Pay the exact amount when your order is delivered. No advance payment required.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
               {/* Order Summary */}
               <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-sky-50 to-indigo-50 p-6">
@@ -2799,14 +2956,29 @@ const Cart = () => {
                   </div>
 
                   <div className="mt-8">
-                    <CustomButton onClick={handleCheckout} fullWidth size="lg" isLoading={checkoutLoading}>
-                      <LockIcon />
-                      Pay ₹{finalTotalPrice.toFixed(2)} Securely
-                    </CustomButton>
-                    <div className="mt-4 flex items-center justify-center text-sm text-slate-500">
-                      <ShieldCheckIcon />
-                      <span className="ml-2">Your payment is secured with 256-bit SSL encryption</span>
-                    </div>
+                    {paymentMethod === "ONLINE" ? (
+                      <>
+                        <CustomButton onClick={handleCheckout} fullWidth size="lg" isLoading={checkoutLoading}>
+                          <LockIcon />
+                          Pay ₹{finalTotalPrice.toFixed(2)} Securely
+                        </CustomButton>
+                        <div className="mt-4 flex items-center justify-center text-sm text-slate-500">
+                          <ShieldCheckIcon />
+                          <span className="ml-2">Your payment is secured with 256-bit SSL encryption</span>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <CustomButton onClick={handleCODCheckout} fullWidth size="lg" isLoading={checkoutLoading}>
+                          <span className="text-green-600 mr-2">₹</span>
+                          Place COD Order for ₹{finalTotalPrice.toFixed(2)}
+                        </CustomButton>
+                        <div className="mt-4 flex items-center justify-center text-sm text-green-600">
+                          <span className="mr-2">💳</span>
+                          <span>Pay when your order is delivered</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
