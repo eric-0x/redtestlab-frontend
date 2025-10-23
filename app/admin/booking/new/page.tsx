@@ -314,7 +314,12 @@ export default function RecentBookings(): React.ReactNode {
                     <div className="pt-2">
                       <div className="flex justify-between items-center">
                         <div className="text-xs text-gray-500">Payment ID</div>
-                        <div className="text-xs font-medium text-gray-600">{booking.razorpayPaymentId.substring(0, 16)}...</div>
+                        <div className="text-xs font-medium text-gray-600">
+                          {booking.razorpayPaymentId ? 
+                            `${booking.razorpayPaymentId.substring(0, 16)}...` : 
+                            booking.paymentMethod === 'COD' ? 'Cash on Delivery' : 'No Payment ID'
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
