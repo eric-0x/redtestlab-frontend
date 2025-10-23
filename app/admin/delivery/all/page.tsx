@@ -70,6 +70,7 @@ interface BCB {
   totalCollections: number
   rating: number
   totalEarnings: number
+  walletBalance: number
   assignedPincodes: string[]
   assignedCities: string[]
   createdAt: string
@@ -102,6 +103,9 @@ export default function AllDeliveryBoyManagement() {
   const [selectedBcb, setSelectedBcb] = useState<BCB | null>(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [copiedItems, setCopiedItems] = useState<Record<string, boolean>>({})
+  const [resetModal, setResetModal] = useState<{ isOpen: boolean; bcb: BCB | null }>({ isOpen: false, bcb: null })
+  const [resetReason, setResetReason] = useState("")
+  const [resetting, setResetting] = useState(false)
 
   // Function to copy text to clipboard
   const copyToClipboard = async (text: string, itemKey: string) => {
@@ -207,6 +211,48 @@ export default function AllDeliveryBoyManagement() {
     setSearchTerm("")
     setStatusFilter("all")
     setCityFilter("all")
+  }
+
+  // Reset wallet function
+  const resetWallet = async () => {
+    if (!resetModal.bcb || !resetReason.trim()) return
+
+    try {
+      setResetting(true)
+      const token = localStorage.getItem("adminToken")
+      if (!token) throw new Error("Admin token not found")
+
+      const response = await fetch(`https://redtestlab.com/api/wallet/admin/reset-wallet/${resetModal.bcb.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          adminId: 1, // TODO: Get from admin context
+          reason: resetReason
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to reset wallet")
+      }
+
+      // Refresh BCBs data
+      await fetchBCBs()
+      
+      // Close modal and reset form
+      setResetModal({ isOpen: false, bcb: null })
+      setResetReason("")
+      
+      alert(`Wallet reset successfully for ${resetModal.bcb.name}`)
+    } catch (error: any) {
+      console.error("Error resetting wallet:", error)
+      alert(`Failed to reset wallet: ${error.message}`)
+    } finally {
+      setResetting(false)
+    }
   }
 
   // Count active filters
@@ -401,18 +447,19 @@ export default function AllDeliveryBoyManagement() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[25%]">BCB Details</TableHead>
-              <TableHead className="w-[20%]">Contact</TableHead>
-              <TableHead className="w-[15%]">Location</TableHead>
-              <TableHead className="w-[10%]">Status</TableHead>
-              <TableHead className="w-[15%]">Date Processed</TableHead>
+              <TableHead className="w-[20%]">BCB Details</TableHead>
+              <TableHead className="w-[15%]">Contact</TableHead>
+              <TableHead className="w-[12%]">Location</TableHead>
+              <TableHead className="w-[8%]">Status</TableHead>
+              <TableHead className="w-[10%]">Wallet Balance</TableHead>
+              <TableHead className="w-[12%]">Date Processed</TableHead>
               <TableHead className="w-[15%]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={7} className="text-center py-12">
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
@@ -421,7 +468,7 @@ export default function AllDeliveryBoyManagement() {
             ) : (
               filteredBCBs.map((bcb) => (
                 <TableRow key={bcb.id}>
-                  <TableCell className="w-[25%]">
+                  <TableCell className="w-[20%]">
                     <div className="flex items-center gap-3">
                       <div className="flex-shrink-0">
                         <img 
@@ -455,7 +502,7 @@ export default function AllDeliveryBoyManagement() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="w-[20%]">
+                  <TableCell className="w-[15%]">
                     <div>
                       <div 
                         className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded transition-colors"
@@ -479,7 +526,7 @@ export default function AllDeliveryBoyManagement() {
                       </p>
                     </div>
                   </TableCell>
-                  <TableCell className="w-[15%]">
+                  <TableCell className="w-[12%]">
                     <div>
                       <p className="text-sm font-medium" style={{ color: "hsl(222.2 84% 4.9%)" }}>
                         {bcb.city}, {bcb.state}
@@ -494,10 +541,18 @@ export default function AllDeliveryBoyManagement() {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="w-[10%]">
+                  <TableCell className="w-[8%]">
                     {getStatusBadge(bcb.status)}
                   </TableCell>
-                  <TableCell className="w-[15%]">
+                  <TableCell className="w-[10%]">
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4 text-green-600" />
+                      <span className="font-medium text-green-600">
+                        ₹{bcb.walletBalance?.toFixed(2) || '0.00'}
+                      </span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="w-[12%]">
                     <span style={{ color: "hsl(222.2 84% 4.9%)" }}>
                       {bcb.verifiedAt ? formatDate(bcb.verifiedAt) : formatDate(bcb.updatedAt)}
                     </span>
@@ -522,6 +577,21 @@ export default function AllDeliveryBoyManagement() {
                         <Eye className="h-4 w-4" />
                         View
                       </Button>
+                      {bcb.status === "APPROVED" && bcb.walletBalance > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setResetModal({ isOpen: true, bcb })
+                            setResetReason("")
+                          }}
+                          className="transition-all duration-200 text-red-600 border-red-200 hover:bg-red-50"
+                          style={{ gap: "4px" }}
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Reset
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -845,6 +915,69 @@ export default function AllDeliveryBoyManagement() {
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset Wallet Modal */}
+      {resetModal.isOpen && resetModal.bcb && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg max-w-md w-full">
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900">Reset Wallet</h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Reset wallet balance for {resetModal.bcb.name}
+              </p>
+            </div>
+            
+            <div className="p-6">
+              <div className="mb-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                    <span className="font-medium text-red-800">Warning</span>
+                  </div>
+                  <p className="text-sm text-red-700">
+                    This will reset the wallet balance from ₹{resetModal.bcb.walletBalance?.toFixed(2) || '0.00'} to ₹0.00
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <Label htmlFor="resetReason" className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason for reset *
+                </Label>
+                <textarea
+                  id="resetReason"
+                  value={resetReason}
+                  onChange={(e) => setResetReason(e.target.value)}
+                  placeholder="Enter reason for wallet reset..."
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  rows={3}
+                  required
+                />
+              </div>
+            </div>
+            
+            <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setResetModal({ isOpen: false, bcb: null })
+                  setResetReason("")
+                }}
+                disabled={resetting}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={resetWallet}
+                disabled={resetting || !resetReason.trim()}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {resetting ? "Resetting..." : "Reset Wallet"}
+              </Button>
             </div>
           </div>
         </div>

@@ -37,6 +37,7 @@ interface Booking {
   userId: number
   razorpayOrderId?: string
   razorpayPaymentId?: string
+  paymentMethod?: string
   status: string
   amount: number
   bookingType: string
@@ -206,6 +207,17 @@ export default function AssignDeliveryBoy() {
     }
   }
 
+  const getPaymentMethodBadgeClasses = (paymentMethod: string) => {
+    switch (paymentMethod) {
+      case "COD":
+        return "bg-orange-100 text-orange-800 border-orange-200"
+      case "ONLINE":
+        return "bg-blue-100 text-blue-800 border-blue-200"
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-200"
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-0 sm:p-4">
       <div className="max-w-7xl mx-auto">
@@ -236,15 +248,20 @@ export default function AssignDeliveryBoy() {
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                           <div>
-                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2">
+                            <h3 className="text-lg sm:text-xl font-semibold text-gray-900 flex items-center gap-2 flex-wrap">
                               <Hash className="h-4 w-4 text-blue-600" />
                               Booking {b.id}
+                              <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadgeClasses(b.collectionStatus || b.status)}`}>
+                                {b.collectionStatus || b.status}
+                              </span>
+                              {b.paymentMethod && (
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
+                                  {b.paymentMethod === 'COD' ? 'Cash on Delivery' : b.paymentMethod}
+                                </span>
+                              )}
                             </h3>
                             <p className="text-gray-600 text-sm mt-1">Created {formatDateTime(b.createdAt)}</p>
                           </div>
-                          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getStatusBadgeClasses(b.collectionStatus || b.status)} self-start`}>
-                            {b.collectionStatus || b.status}
-                          </span>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-2">
                           <button
@@ -374,7 +391,15 @@ export default function AssignDeliveryBoy() {
                                 {b.bookingType}
                               </span>
                             </div>
-                            {b.razorpayPaymentId && (
+                            {b.paymentMethod && (
+                              <div className="flex justify-between items-center">
+                                <span>Payment:</span>
+                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(b.paymentMethod)}`}>
+                                  {b.paymentMethod === 'COD' ? 'Cash on Delivery' : b.paymentMethod}
+                                </span>
+                              </div>
+                            )}
+                            {b.razorpayPaymentId && b.paymentMethod !== 'COD' && (
                               <div className="flex flex-col sm:flex-row sm:justify-between gap-1">
                                 <span>Payment ID:</span>
                                 <code className="text-xs bg-gray-100 px-1 rounded border break-all">{b.razorpayPaymentId}</code>
@@ -599,13 +624,21 @@ export default function AssignDeliveryBoy() {
                       </div>
                       <div><strong>Amount:</strong> {formatCurrency(detailsModal.booking.amount)}</div>
                       <div><strong>Type:</strong> {detailsModal.booking.bookingType}</div>
+                      {detailsModal.booking.paymentMethod && (
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                          <strong>Payment Method:</strong>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getPaymentMethodBadgeClasses(detailsModal.booking.paymentMethod)} self-start`}>
+                            {detailsModal.booking.paymentMethod === 'COD' ? 'Cash on Delivery' : detailsModal.booking.paymentMethod}
+                          </span>
+                        </div>
+                      )}
                       <div className="break-words"><strong>Created:</strong> {formatDateTime(detailsModal.booking.createdAt)}</div>
                     </div>
                     <div className="space-y-2">
-                      {detailsModal.booking.razorpayPaymentId && (
+                      {detailsModal.booking.razorpayPaymentId && detailsModal.booking.paymentMethod !== 'COD' && (
                         <div className="break-all"><strong>Payment ID:</strong> <code className="text-xs bg-white px-1 rounded border">{detailsModal.booking.razorpayPaymentId}</code></div>
                       )}
-                      {detailsModal.booking.razorpayOrderId && (
+                      {detailsModal.booking.razorpayOrderId && detailsModal.booking.paymentMethod !== 'COD' && (
                         <div className="break-all"><strong>Order ID:</strong> <code className="text-xs bg-white px-1 rounded border">{detailsModal.booking.razorpayOrderId}</code></div>
                       )}
                       {detailsModal.booking.collectionDate && (
