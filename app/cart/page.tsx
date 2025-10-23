@@ -2009,8 +2009,31 @@ const Cart = () => {
     try {
       setCheckoutLoading(true)
 
+      // Validate required data
+      if (!selectedMembers.length || !selectedAddress) {
+        setNotification({
+          show: true,
+          title: "Missing Information",
+          message: "Please select a member and address before placing COD order",
+          type: "error",
+        })
+        setCheckoutLoading(false)
+        return
+      }
+
       // Get user ID from localStorage
       const userId = Number.parseInt(getUserId())
+      
+      if (!userId || isNaN(userId)) {
+        setNotification({
+          show: true,
+          title: "Authentication Required",
+          message: "Please login to place a COD order",
+          type: "error",
+        })
+        setCheckoutLoading(false)
+        return
+      }
 
       // Extract cart items from local cart for booking creation
       const cartItems = localCart?.items.map((item) => ({
@@ -2019,6 +2042,17 @@ const Cart = () => {
         quantity: item.quantity,
         price: item.price,
       })) || []
+
+      if (!cartItems.length) {
+        setNotification({
+          show: true,
+          title: "Empty Cart",
+          message: "Your cart is empty. Please add items before placing an order",
+          type: "error",
+        })
+        setCheckoutLoading(false)
+        return
+      }
 
       // Create COD booking
       const bookingResponse = await fetch("https://redtestlab.com/api/bookings/create-cod-booking", {
@@ -2045,7 +2079,9 @@ const Cart = () => {
       console.log("COD Booking created:", bookingData)
 
       if (!bookingResponse.ok) {
-        throw new Error(bookingData.error || `COD booking creation failed: ${bookingResponse.status}`)
+        const errorMessage = bookingData.error || `COD booking creation failed: ${bookingResponse.status}`
+        const errorDetails = bookingData.details ? ` (${bookingData.details})` : ''
+        throw new Error(errorMessage + errorDetails)
       }
 
       // Show success notification
