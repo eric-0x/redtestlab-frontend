@@ -237,7 +237,7 @@ export default function DeliveryDashboard() {
                 {/* Top row: Amount and Status on the right for mobile too */}
                 <div className="flex items-start justify-between">
                   <div className="text-base font-semibold text-gray-900">{formatDate(item.collectionDate)}</div>
-                  <div className="flex flex-col sm:flex-row gap-2 items-end">
+                  <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-end">
                     <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(item.collectionStatus)}`}>{item.collectionStatus}</span>
                     <span className={`px-3 py-1 rounded-full text-sm font-medium border ${
                       item.paymentMethod === 'COD' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-blue-100 text-blue-800 border-blue-200'

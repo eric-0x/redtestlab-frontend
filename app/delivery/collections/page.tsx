@@ -386,7 +386,7 @@ function CollectionsPage() {
                                 <Hash className="h-4 w-4 text-orange-600 flex-shrink-0" />
                                 <span className="truncate">Booking {booking.id}</span>
                               </h3>
-                              <div className="flex flex-col sm:flex-row gap-2 items-end">
+                              <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-end">
                                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getCollectionStatusBadgeClasses(booking.collectionStatus)} self-start flex-shrink-0`}>
                                   {booking.collectionStatus}
                                 </span>
